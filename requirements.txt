@@ -14,7 +14,7 @@ numpy==1.26.4
 Pillow==10.4.0
 
 # TensorFlow stack (compatible con DeepFace)
-tensorflow-cpu==2.15.0
+tensorflow-cpu==2.20.0
 protobuf==4.25.3
 
 # Utilidades
