@@ -1,0 +1,126 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Gestión de Personas</h2>
+
+<form id="formPerson">
+  <label>Nombre:</label>
+  <input type="text" name="nombre" required>
+  <label>Cargo:</label>
+  <input type="text" name="cargo">
+  <label>ID empleado:</label>
+  <input type="text" name="employee_id">
+  <button type="submit">Agregar Persona</button>
+</form>
+
+<!-- Agregado modal para editar personas -->
+<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:8px; min-width:300px;">
+    <h3>Editar Persona</h3>
+    <form id="editForm">
+      <input type="hidden" id="editId">
+      <label>Nombre:</label>
+      <input type="text" id="editNombre" required><br><br>
+      <label>Cargo:</label>
+      <input type="text" id="editCargo"><br><br>
+      <label>ID empleado:</label>
+      <input type="text" id="editEmployeeId"><br><br>
+      <button type="submit">Guardar Cambios</button>
+      <button type="button" onclick="closeEditModal()">Cancelar</button>
+    </form>
+  </div>
+</div>
+
+<table id="peopleTable">
+  <thead>
+    <tr>
+      <th>ID</th><th>Nombre</th><th>Cargo</th><th>Empleado</th><th>Embeddings</th><th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  loadPeople();
+  document.getElementById("formPerson").addEventListener("submit", async e => {
+    e.preventDefault();
+    let fd = new FormData(e.target);
+    let data = Object.fromEntries(fd.entries());
+    let res = await fetch("/api/people", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data)});
+    let j = await res.json();
+    if (j.ok) { alert("Persona creada"); loadPeople(); e.target.reset(); }
+  });
+
+  document.getElementById("editForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    let id = document.getElementById("editId").value;
+    let data = {
+      nombre: document.getElementById("editNombre").value,
+      cargo: document.getElementById("editCargo").value,
+      employee_id: document.getElementById("editEmployeeId").value
+    };
+    let res = await fetch(`/api/people/${id}`, {method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data)});
+    let j = await res.json();
+    if (j.ok) { 
+      alert("Persona actualizada"); 
+      closeEditModal(); 
+      loadPeople(); 
+    } else {
+      alert("Error: " + (j.error || "No se pudo actualizar"));
+    }
+  });
+});
+
+async function loadPeople() {
+  let res = await fetch("/api/people");
+  let data = await res.json();
+  let tbody = document.querySelector("#peopleTable tbody");
+  tbody.innerHTML = "";
+  data.forEach(p => {
+    let tr = document.createElement("tr");
+    tr.innerHTML = `<td>${p.id}</td><td>${p.nombre}</td><td>${p.cargo||""}</td><td>${p.employee_id||""}</td>
+                    <td>${p.embeddings}</td>
+                    <td>
+                      <input type="file" onchange="uploadPhoto(${p.id},this.files[0])" style="margin-bottom:5px;"><br>
+                      <button onclick="editPerson(${p.id},'${p.nombre}','${p.cargo||''}','${p.employee_id||''}')" style="margin-right:5px; background:#007bff; color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer;">Editar</button>
+                      <button onclick="deletePerson(${p.id})" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer;">Eliminar</button>
+                    </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function uploadPhoto(pid,file){
+  let fd = new FormData();
+  fd.append("file", file);
+  let res = await fetch("/api/people/"+pid+"/photo",{method:"POST", body:fd});
+  let j = await res.json();
+  if(j.ok){ alert("Foto subida y embedding guardado"); loadPeople(); }
+  else{ alert("Error: "+j.error); }
+}
+
+function editPerson(id, nombre, cargo, employeeId) {
+  document.getElementById("editId").value = id;
+  document.getElementById("editNombre").value = nombre;
+  document.getElementById("editCargo").value = cargo;
+  document.getElementById("editEmployeeId").value = employeeId;
+  document.getElementById("editModal").style.display = "block";
+}
+
+function closeEditModal() {
+  document.getElementById("editModal").style.display = "none";
+}
+
+async function deletePerson(id) {
+  if (confirm("¿Estás seguro de que quieres eliminar esta persona?")) {
+    let res = await fetch(`/api/people/${id}`, {method:"DELETE"});
+    let j = await res.json();
+    if (j.ok) { 
+      alert("Persona eliminada"); 
+      loadPeople(); 
+    } else {
+      alert("Error: " + (j.error || "No se pudo eliminar"));
+    }
+  }
+}
+</script>
+{% endblock %}
