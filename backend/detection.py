@@ -4,6 +4,8 @@ from models import Evento, Persona
 from face_recognition import detect_faces, crop_face, compute_embedding, find_best_match
 from config import SIMILARITY_THRESHOLD
 from email_notify import send_alert_email
+from alerts import enviar_alerta_telegram  # 🚨 Importamos el nuevo módulo de alertas Telegram
+
 
 class CameraWorker:
     def __init__(self, source=0, camera_name='CAM', empresa_id=None):
@@ -87,26 +89,37 @@ class CameraWorker:
                     session.add(ev)
                     session.commit()
 
+                    # 🚨 ALERTAS EN CASO DE PERSONA DESCONOCIDA
                     if es_desconocido and self.empresa_id:
                         current_time = time.time()
                         last_alert = self.last_alert_time.get('unknown', 0)
                         if current_time - last_alert > 300:  # 5 minutos entre alertas
                             try:
-                                # Obtener email de la empresa
                                 from models import Empresa
                                 empresa = session.get(Empresa, self.empresa_id)
                                 if empresa and empresa.email:
+                                    # Enviar alerta por correo electrónico
                                     send_alert_email(
                                         empresa.email, 
                                         empresa.nombre, 
                                         self.camera_name,
                                         face_img
                                     )
-                                    self.last_alert_time['unknown'] = current_time
                                     print(f"[CameraWorker] Alerta enviada a {empresa.email}")
+
+                                    # 🚨 Enviar alerta también al celular (Telegram)
+                                    enviar_alerta_telegram(
+                                        nombre_empresa=empresa.nombre,
+                                        nombre_camara=self.camera_name,
+                                        similitud=similarity_score
+                                    )
+                                    print(f"[CameraWorker] Alerta enviada por Telegram")
+
+                                    self.last_alert_time['unknown'] = current_time
                             except Exception as e:
                                 print(f"[CameraWorker] Error enviando alerta: {e}")
 
+                    # Dibujo del rectángulo y etiqueta
                     color = (0, 255, 0) if not es_desconocido else (0, 0, 255)
                     cv2.rectangle(draw, (x, y), (x+w, y+h), color, 2)
                     display_label = f"{label} ({similarity_score:.2f})" if similarity_score > 0 else label
@@ -127,6 +140,7 @@ class CameraWorker:
     def get_frame(self):
         with self.lock:
             return None if self.frame is None else self.frame.copy()
+
 
 def mjpeg_generator(worker):
     while True:

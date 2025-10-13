@@ -1,64 +1,57 @@
 {% extends "layout.html" %}
 {% block content %}
+
 <div class="dashboard-header">
-  <h2><i class="fas fa-tachometer-alt"></i> Dashboard de Seguridad - {{ empresa }}</h2>
+  <h2><i class="fas fa-shield-alt"></i> Centro de Seguridad Inteligente - {{ empresa }}</h2>
   <div class="status-indicators">
     <div class="status-item">
-      <i class="fas fa-video text-success"></i>
-      <span>Sistema Activo</span>
+      <span class="led green"></span> Sistema Activo
     </div>
     <div class="status-item">
-      <i class="fas fa-shield-alt text-primary"></i>
-      <span>IA Funcionando</span>
+      <span class="led blue"></span> IA Funcionando
     </div>
   </div>
 </div>
 
 <div class="dashboard">
-   Sección de múltiples cámaras mejorada 
+
+  <!-- Sección de cámaras -->
   <div class="card cameras-section">
-    <div class="card-header">
-      <h3><i class="fas fa-video"></i> Centro de Monitoreo</h3>
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h3 class="monitor-title"><i class="fas fa-video"></i> Centro de Monitoreo</h3>
       <div class="camera-controls">
-        <button id="refreshCameras" class="btn btn-secondary">
+        <button id="refreshCameras" class="btn btn-gradient">
           <i class="fas fa-sync-alt"></i> Actualizar
         </button>
       </div>
     </div>
-    
     <div class="cameras-grid" id="camerasGrid">
-       Las cámaras se cargarán dinámicamente 
+      <!-- Cámaras se cargarán dinámicamente -->
     </div>
   </div>
 
-   Estadísticas mejoradas 
+  <!-- Estadísticas -->
   <div class="card stats-section">
     <div class="card-header">
       <h3><i class="fas fa-chart-pie"></i> Estadísticas en Tiempo Real</h3>
     </div>
     <div class="stats-grid">
       <div class="stat-item">
-        <div class="stat-icon">
-          <i class="fas fa-user-check text-success"></i>
-        </div>
+        <div class="stat-icon"><i class="fas fa-user-check text-success"></i></div>
         <div class="stat-info">
           <h4 id="conocidosCount">0</h4>
           <p>Personas Conocidas</p>
         </div>
       </div>
       <div class="stat-item">
-        <div class="stat-icon">
-          <i class="fas fa-user-times text-danger"></i>
-        </div>
+        <div class="stat-icon"><i class="fas fa-user-times text-danger"></i></div>
         <div class="stat-info">
           <h4 id="desconocidosCount">0</h4>
           <p>Personas Desconocidas</p>
         </div>
       </div>
-      <div class="stat-item">
-        <div class="stat-icon">
-          <i class="fas fa-eye text-info"></i>
-        </div>
+      <div class="stat-item critical">
+        <div class="stat-icon"><i class="fas fa-eye text-info"></i></div>
         <div class="stat-info">
           <h4 id="totalDetecciones">0</h4>
           <p>Total Detecciones Hoy</p>
@@ -66,49 +59,59 @@
       </div>
     </div>
     <canvas id="chartEvents"></canvas>
+    <canvas id="chartTimeline"></canvas>
   </div>
 
-   Alertas recientes 
+  <!-- Alertas -->
   <div class="card alerts-section">
     <div class="card-header">
       <h3><i class="fas fa-exclamation-triangle"></i> Alertas Recientes</h3>
     </div>
     <div id="recentAlerts" class="alerts-list">
-       Las alertas se cargarán dinámicamente 
+      <!-- Se cargan dinámicamente -->
     </div>
   </div>
+
 </div>
 
+<!-- Librerías -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  let chart = null;
+  let chartDonut = null;
+  let chartTimeline = null;
 
+  // ---------- CARGAR CAMARAS ----------
   function loadCameras() {
     fetch("/api/cameras")
       .then(r => r.json())
       .then(cameras => {
         const grid = document.getElementById("camerasGrid");
         grid.innerHTML = "";
-        
+
         cameras.forEach(camera => {
           const cameraDiv = document.createElement("div");
-          cameraDiv.className = "camera-container";
+          cameraDiv.className = "camera-container card shadow-sm p-2";
           cameraDiv.innerHTML = `
-            <div class="camera-header">
+            <div class="camera-header d-flex justify-content-between align-items-center">
               <h4><i class="fas fa-video"></i> ${camera.name}</h4>
-              <span class="status ${camera.status}">${camera.status === 'active' ? 'Activa' : 'Inactiva'}</span>
+              <span class="status ${camera.status}">
+                ${camera.status === 'active' ? '🟢 Activa' : '🔴 Inactiva'}
+              </span>
             </div>
-            <div class="stream-container">
-              <div class="cam-loading">Conectando cámara...</div>
-              <img class="cam-stream" src="/placeholder.svg" alt="Stream ${camera.name}" style="display:none;">
-              <div class="cam-error" style="display:none;">⚠️ No se pudo conectar</div>
+            <div class="stream-container text-center mt-2">
+              <div class="cam-loading">⏳ Conectando cámara...</div>
+              <img class="cam-stream w-100 rounded border border-info" 
+                   src="/placeholder.svg" 
+                   alt="Stream ${camera.name}" 
+                   style="display:none; max-height:250px; object-fit:cover;">
+              <div class="cam-error text-danger mt-1" style="display:none;">⚠️ No se pudo conectar</div>
             </div>
-            <div class="camera-controls">
-              <button onclick="startCamera(${camera.id}, this)" class="btn btn-primary">
+            <div class="camera-controls d-flex justify-content-center gap-2 mt-2">
+              <button onclick="startCamera(${camera.id}, this)" class="btn btn-primary btn-sm">
                 <i class="fas fa-play"></i> Iniciar
               </button>
-              <button onclick="stopCamera(${camera.id}, this)" class="btn btn-secondary">
+              <button onclick="stopCamera(${camera.id}, this)" class="btn btn-secondary btn-sm">
                 <i class="fas fa-stop"></i> Detener
               </button>
             </div>
@@ -119,24 +122,25 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => console.error("Error cargando cámaras:", err));
   }
 
+  // ---------- CONTROL CAMARAS ----------
   window.startCamera = function(camId, button) {
     const container = button.closest('.camera-container');
     const loading = container.querySelector('.cam-loading');
     const stream = container.querySelector('.cam-stream');
     const error = container.querySelector('.cam-error');
-    
+
     loading.style.display = 'block';
     stream.style.display = 'none';
     error.style.display = 'none';
-    
-    stream.src = `/stream/${camId}`;
-    
+
+    stream.src = `/stream/${camId}?t=${Date.now()}`; // evitar caché
+
     stream.onload = () => {
       loading.style.display = 'none';
       stream.style.display = 'block';
       button.innerHTML = '<i class="fas fa-pause"></i> Pausar';
     };
-    
+
     stream.onerror = () => {
       loading.style.display = 'none';
       error.style.display = 'block';
@@ -150,7 +154,20 @@ document.addEventListener("DOMContentLoaded", () => {
     stream.style.display = 'none';
     container.querySelector('.cam-loading').style.display = 'none';
     container.querySelector('.cam-error').style.display = 'none';
+    button.innerHTML = '<i class="fas fa-play"></i> Iniciar';
   };
+
+  // ---------- ESTADISTICAS ----------
+  function animateCounter(id, target) {
+    const element = document.getElementById(id);
+    let count = parseInt(element.textContent) || 0;
+    const step = target > count ? 1 : -1;
+    const interval = setInterval(() => {
+      count += step;
+      element.textContent = count;
+      if (count === target) clearInterval(interval);
+    }, 20);
+  }
 
   function loadStats() {
     fetch("/api/events")
@@ -159,20 +176,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const conocidos = data.filter(e => !e.es_desconocido).length;
         const desconocidos = data.filter(e => e.es_desconocido).length;
         const total = data.length;
-        
-        document.getElementById('conocidosCount').textContent = conocidos;
-        document.getElementById('desconocidosCount').textContent = desconocidos;
-        document.getElementById('totalDetecciones').textContent = total;
-        
-        // Actualizar gráfico
-        if (chart) {
-          chart.destroy();
-        }
-        
-        chart = new Chart(document.getElementById("chartEvents").getContext("2d"), {
+
+        animateCounter('conocidosCount', conocidos);
+        animateCounter('desconocidosCount', desconocidos);
+        animateCounter('totalDetecciones', total);
+
+        // Gráfico DONUT
+        if (chartDonut) chartDonut.destroy();
+        chartDonut = new Chart(document.getElementById("chartEvents").getContext("2d"), {
           type: 'doughnut',
           data: {
-            labels: ['Personas Conocidas', 'Personas Desconocidas'],
+            labels: ['Conocidos', 'Desconocidos'],
             datasets: [{
               data: [conocidos, desconocidos],
               backgroundColor: ['#28a745','#dc3545'],
@@ -180,55 +194,61 @@ document.addEventListener("DOMContentLoaded", () => {
               borderColor: '#fff'
             }]
           },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                position: 'bottom'
-              }
-            }
-          }
+          options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
         });
-        
+
+        // Gráfico LINEA temporal
+        if (chartTimeline) chartTimeline.destroy();
+        chartTimeline = new Chart(document.getElementById("chartTimeline").getContext("2d"), {
+          type: 'line',
+          data: {
+            labels: data.map(e => new Date(e.timestamp).toLocaleTimeString()),
+            datasets: [{
+              label: "Detecciones",
+              borderColor: "#17a2b8",
+              backgroundColor: "rgba(23,162,184,0.2)",
+              data: data.map((e, i) => i + 1),
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+
         loadRecentAlerts(data);
       })
       .catch(err => console.error("Error cargando estadísticas:", err));
   }
 
+  // ---------- ALERTAS ----------
   function loadRecentAlerts(events) {
     const alertsContainer = document.getElementById('recentAlerts');
-    const recentEvents = events
-      .filter(e => e.es_desconocido)
-      .slice(0, 5)
-      .reverse();
-    
+    const recentEvents = events.filter(e => e.es_desconocido).slice(-5).reverse();
+
     if (recentEvents.length === 0) {
-      alertsContainer.innerHTML = '<p class="no-alerts">No hay alertas recientes</p>';
+      alertsContainer.innerHTML = '<p class="no-alerts text-success">✅ Sin alertas recientes</p>';
       return;
     }
-    
+
     alertsContainer.innerHTML = recentEvents.map(event => `
-      <div class="alert-item">
-        <div class="alert-icon">
-          <i class="fas fa-exclamation-triangle text-warning"></i>
-        </div>
-        <div class="alert-info">
-          <strong>Persona Desconocida Detectada</strong>
-          <p>Cámara: ${event.camera} - ${new Date(event.timestamp).toLocaleString()}</p>
+      <div class="alert-item critical card p-2 mb-2 shadow-sm">
+        <div class="d-flex align-items-center">
+          <div class="alert-icon me-2"><i class="fas fa-exclamation-triangle text-warning"></i></div>
+          <div class="alert-info">
+            <strong>Desconocido Detectado</strong>
+            <p class="mb-0">Cámara: ${event.camera} - ${new Date(event.timestamp).toLocaleString()}</p>
+          </div>
         </div>
       </div>
     `).join('');
   }
 
-  // Inicializar dashboard
+  // ---------- INIT ----------
   loadCameras();
   loadStats();
-  
-  // Actualizar estadísticas cada 30 segundos
   setInterval(loadStats, 30000);
-  
-  // Event listeners
   document.getElementById('refreshCameras').addEventListener('click', loadCameras);
 });
 </script>
+
 {% endblock %}

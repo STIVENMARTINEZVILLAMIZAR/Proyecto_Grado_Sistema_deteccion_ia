@@ -4,16 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ title if title else "Sistema de Seguridad Facial" }}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.0">
-  <script src="{{ url_for('static', filename='js/app.js') }}?v=2.0"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+  <!-- SEO -->
+  <meta name="description" content="Sistema de Seguridad Facial con Inteligencia Artificial para monitoreo empresarial.">
+  <meta name="keywords" content="IA, seguridad, reconocimiento facial, monitoreo, detección de rostros">
+  <meta name="author" content="Elver Beltrán">
+
+  <!-- Favicon -->
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/app.js') }}?v=3.0" defer></script>
 </head>
 <body>
   <div class="wrapper">
+
+    <!-- Navbar -->
     <header>
       <nav class="navbar">
         <div class="nav-brand">
+          <i class="fas fa-shield-alt"></i> Seguridad IA
         </div>
         <ul class="nav-menu">
           {% if session.get('empresa_id') %}
@@ -23,38 +38,54 @@
             <li><a href="{{ url_for('about') }}"><i class="fas fa-info-circle"></i> Misión & Visión</a></li>
             <li><a href="{{ url_for('instructions') }}"><i class="fas fa-book"></i> Instrucciones</a></li>
             <li><a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Perfil</a></li>
-            <li><a href="{{ url_for('auth.logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Salir ({{ session.get('empresa_nombre') }})</a></li>
+            <li>
+              <a href="{{ url_for('auth.logout') }}" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Salir ({{ session.get('empresa_nombre') }})
+              </a>
+            </li>
           {% else %}
-            <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-            <li><a href="{{ url_for('auth.register') }}">Registro</a></li>
+            <li><a href="{{ url_for('auth.login') }}" class="btn-login">Login</a></li>
+            <li><a href="{{ url_for('auth.register') }}" class="btn-register">Registro</a></li>
           {% endif %}
         </ul>
       </nav>
     </header>
 
-    <main>
-      {% with messages = get_flashed_messages() %}
+    <!-- Mensajes flash -->
+    <div class="flash-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-          <div class="flash">
-            {% for m in messages %}
-              <p><i class="fas fa-info-circle"></i> {{ m }}</p>
-            {% endfor %}
-          </div>
+          {% for category, m in messages %}
+            <div class="flash flash-{{ category }}">
+              <i class="fas fa-info-circle"></i> {{ m }}
+            </div>
+          {% endfor %}
         {% endif %}
       {% endwith %}
+    </div>
+
+    <!-- Contenido principal -->
+    <main>
       {% block content %}{% endblock %}
     </main>
 
-    <footer>
-      <p><i class="fas fa-copyright"></i> Sistema de Detección de Rostros con IA © 2025 - Desarrollado para seguridad empresarial</p>
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-left">
+        <p><i class="fas fa-shield-alt"></i> Sistema de Seguridad Facial con IA © 2025</p>
+      </div>
+      <div class="footer-right">
+        <a href="{{ url_for('about') }}">Sobre el sistema</a> | 
+        <a href="{{ url_for('instructions') }}">Ayuda</a> | 
+        <span>v3.0</span>
+      </div>
     </footer>
   </div>
 
+  <!-- Reload CSS si hay cache -->
   <script>
-    // Forzar recarga de CSS si hay problemas de cache
     if (performance.navigation.type === 1) {
-      const links = document.querySelectorAll('link[rel="stylesheet"]');
-      links.forEach(link => {
+      document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
         const href = link.href;
         link.href = href + (href.includes('?') ? '&' : '?') + 'reload=' + Date.now();
       });
