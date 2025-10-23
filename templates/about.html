@@ -1,5 +1,586 @@
 {% extends "layout.html" %}
 {% block content %}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --accent-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --card-bg: #1a1f3a;
+        --card-bg-light: #242b47;
+        --dark-bg: #0f1425;
+        --border-color: #2d3548;
+        --text-primary: #ffffff;
+        --text-secondary: #8b92a8;
+        --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    body {
+        background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+        color: var(--text-primary);
+        overflow-x: hidden;
+    }
+
+    .about-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Header con efecto hero */
+    .about-header {
+        text-align: center;
+        padding: 60px 20px;
+        background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-bg) 100%);
+        border-radius: 20px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .about-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+    }
+
+    .about-header::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .about-header h2 {
+        font-size: 42px;
+        font-weight: 800;
+        margin: 0 0 15px 0;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: inline-flex;
+        align-items: center;
+        gap: 15px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .about-header h2 i {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .subtitle {
+        font-size: 18px;
+        color: var(--text-secondary);
+        font-weight: 400;
+        position: relative;
+        z-index: 1;
+        margin: 0;
+    }
+
+    .about-content {
+        display: grid;
+        gap: 30px;
+    }
+
+    /* Cards estilizadas */
+    .card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 35px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 70px rgba(102, 126, 234, 0.3);
+    }
+
+    .card:hover::before {
+        opacity: 1;
+    }
+
+    .mission-card::before {
+        background: var(--primary-gradient);
+    }
+
+    .vision-card::before {
+        background: var(--secondary-gradient);
+    }
+
+    .values-card::before {
+        background: var(--success-gradient);
+    }
+
+    .technology-card::before {
+        background: var(--accent-gradient);
+    }
+
+    .card-header {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .card-header h3 {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        color: var(--text-primary);
+    }
+
+    .card-header h3 i {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 24px;
+    }
+
+    .mission-card .card-header h3 i {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+        color: #667eea;
+    }
+
+    .vision-card .card-header h3 i {
+        background: linear-gradient(135deg, rgba(240, 147, 251, 0.2) 0%, rgba(245, 87, 108, 0.2) 100%);
+        color: #f093fb;
+    }
+
+    .values-card .card-header h3 i {
+        background: linear-gradient(135deg, rgba(79, 172, 254, 0.2) 0%, rgba(0, 242, 254, 0.2) 100%);
+        color: #4facfe;
+    }
+
+    .technology-card .card-header h3 i {
+        background: linear-gradient(135deg, rgba(67, 233, 123, 0.2) 0%, rgba(56, 249, 215, 0.2) 100%);
+        color: #43e97b;
+    }
+
+    /* Contenido de Misión */
+    .mission-content p {
+        font-size: 16px;
+        line-height: 1.8;
+        color: var(--text-secondary);
+        margin-bottom: 30px;
+    }
+
+    .mission-points {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .point {
+        background: linear-gradient(135deg, var(--card-bg-light) 0%, var(--card-bg) 100%);
+        padding: 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s;
+    }
+
+    .point:hover {
+        transform: translateX(10px);
+        border-color: #667eea;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    }
+
+    .point i {
+        width: 45px;
+        height: 45px;
+        background: var(--primary-gradient);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .point span {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    /* Contenido de Visión */
+    .vision-content p {
+        font-size: 16px;
+        line-height: 1.8;
+        color: var(--text-secondary);
+        margin-bottom: 30px;
+    }
+
+    .vision-goals {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .goal {
+        background: linear-gradient(135deg, var(--card-bg-light) 0%, var(--card-bg) 100%);
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .goal::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--secondary-gradient);
+        transform: scaleY(0);
+        transition: transform 0.3s;
+    }
+
+    .goal:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(240, 147, 251, 0.2);
+    }
+
+    .goal:hover::before {
+        transform: scaleY(1);
+    }
+
+    .goal h4 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0 0 10px 0;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .goal h4 i {
+        color: #f093fb;
+    }
+
+    .goal p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* Grid de Valores */
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+    }
+
+    .value-item {
+        background: linear-gradient(135deg, var(--card-bg-light) 0%, var(--card-bg) 100%);
+        padding: 30px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        text-align: center;
+        transition: all 0.4s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .value-item::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--success-gradient);
+        transform: scaleX(0);
+        transition: transform 0.4s;
+    }
+
+    .value-item:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 20px 50px rgba(79, 172, 254, 0.3);
+        border-color: #4facfe;
+    }
+
+    .value-item:hover::after {
+        transform: scaleX(1);
+    }
+
+    .value-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: var(--success-gradient);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        color: white;
+        position: relative;
+        transition: all 0.3s;
+    }
+
+    .value-item:hover .value-icon {
+        transform: rotateY(360deg);
+    }
+
+    .value-icon::before {
+        content: '';
+        position: absolute;
+        inset: -3px;
+        border-radius: 16px;
+        padding: 3px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+    }
+
+    .value-item h4 {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0 0 10px 0;
+        color: var(--text-primary);
+    }
+
+    .value-item p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* Tecnología */
+    .tech-stack {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .tech-item {
+        background: linear-gradient(135deg, var(--card-bg-light) 0%, var(--card-bg) 100%);
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .tech-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--accent-gradient);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .tech-item:hover {
+        transform: translateX(10px);
+        border-color: #43e97b;
+        box-shadow: 0 15px 40px rgba(67, 233, 123, 0.2);
+    }
+
+    .tech-item:hover::before {
+        opacity: 0.05;
+    }
+
+    .tech-item > i {
+        width: 60px;
+        height: 60px;
+        background: var(--accent-gradient);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: white;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .tech-item div {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+
+    .tech-item h4 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        color: var(--text-primary);
+    }
+
+    .tech-item p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Animaciones de entrada */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .card {
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+    }
+
+    .mission-card {
+        animation-delay: 0.1s;
+    }
+
+    .vision-card {
+        animation-delay: 0.2s;
+    }
+
+    .values-card {
+        animation-delay: 0.3s;
+    }
+
+    .technology-card {
+        animation-delay: 0.4s;
+    }
+
+    /* Efecto parallax suave */
+    .about-header {
+        transform-style: preserve-3d;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .about-header {
+            padding: 40px 20px;
+        }
+
+        .about-header h2 {
+            font-size: 32px;
+            flex-direction: column;
+        }
+
+        .subtitle {
+            font-size: 16px;
+        }
+
+        .card {
+            padding: 25px;
+        }
+
+        .card-header h3 {
+            font-size: 24px;
+        }
+
+        .mission-points,
+        .vision-goals,
+        .values-grid,
+        .tech-stack {
+            grid-template-columns: 1fr;
+        }
+
+        .point,
+        .goal,
+        .value-item,
+        .tech-item {
+            transform: none !important;
+        }
+
+        .value-icon {
+            width: 70px;
+            height: 70px;
+            font-size: 32px;
+        }
+    }
+
+    /* Efectos adicionales */
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .value-icon {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .value-item:nth-child(1) .value-icon { animation-delay: 0s; }
+    .value-item:nth-child(2) .value-icon { animation-delay: 0.5s; }
+    .value-item:nth-child(3) .value-icon { animation-delay: 1s; }
+    .value-item:nth-child(4) .value-icon { animation-delay: 1.5s; }
+    .value-item:nth-child(5) .value-icon { animation-delay: 2s; }
+    .value-item:nth-child(6) .value-icon { animation-delay: 2.5s; }
+
+    /* Prevenir selección de texto en elementos decorativos */
+    .value-icon, .point i, .tech-item > i {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+</style>
+
 <div class="about-container">
   <div class="about-header">
     <h2><i class="fas fa-info-circle"></i> Misión, Visión y Valores</h2>
@@ -150,4 +731,54 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Efecto parallax en el header
+    const header = document.querySelector('.about-header');
+    
+    document.addEventListener('mousemove', (e) => {
+        const mouseX = e.clientX / window.innerWidth;
+        const mouseY = e.clientY / window.innerHeight;
+        
+        const moveX = (mouseX - 0.5) * 20;
+        const moveY = (mouseY - 0.5) * 20;
+        
+        if (header) {
+            header.style.transform = `perspective(1000px) rotateY(${moveX}deg) rotateX(${-moveY}deg)`;
+        }
+    });
+
+    // Animación de conteo para valores
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    document.querySelectorAll('.value-item, .tech-item, .goal, .point').forEach(el => {
+        observer.observe(el);
+    });
+
+    // Efecto de brillo en las tarjetas al pasar el mouse
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+        });
+    });
+
+    console.log('%c🎯 Página Acerca de cargada', 'color: #667eea; font-size: 14px; font-weight: bold;');
+});
+</script>
+
 {% endblock %}

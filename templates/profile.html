@@ -1,122 +1,776 @@
 {% extends "layout.html" %}
 {% block content %}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --info-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --warning-gradient: linear-gradient(135deg, #ffd93d 0%, #ff9a3d 100%);
+        --card-bg: #1a1f3a;
+        --card-bg-light: #242b47;
+        --dark-bg: #0f1425;
+        --border-color: #2d3548;
+        --text-primary: #ffffff;
+        --text-secondary: #8b92a8;
+        --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    body {
+        background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+        color: var(--text-primary);
+    }
+
+    .profile-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Header con avatar */
+    .profile-header {
+        background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-bg) 100%);
+        padding: 40px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+    }
+
+    .profile-header::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        background: var(--primary-gradient);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        color: white;
+        position: relative;
+        z-index: 1;
+        flex-shrink: 0;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+    }
+
+    .profile-avatar::before {
+        content: '';
+        position: absolute;
+        inset: -3px;
+        border-radius: 20px;
+        padding: 3px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+    }
+
+    .profile-header-content {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+
+    .profile-header h2 {
+        font-size: 36px;
+        font-weight: 800;
+        margin: 0 0 10px 0;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .profile-subtitle {
+        font-size: 16px;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .profile-badges {
+        display: flex;
+        gap: 12px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+    }
+
+    .profile-badge {
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        backdrop-filter: blur(10px);
+    }
+
+    .profile-badge.premium {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 193, 7, 0.1) 100%);
+        border-color: rgba(255, 215, 0, 0.4);
+        color: #ffd700;
+    }
+
+    /* Content Grid */
+    .profile-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px;
+    }
+
+    /* Cards */
+    .card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 70px rgba(102, 126, 234, 0.3);
+    }
+
+    .card:hover::before {
+        opacity: 1;
+    }
+
+    .profile-info::before {
+        background: var(--primary-gradient);
+    }
+
+    .system-info::before {
+        background: var(--success-gradient);
+    }
+
+    .quick-actions::before {
+        background: var(--info-gradient);
+    }
+
+    .card-header {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .card-header h3 {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--text-primary);
+    }
+
+    .card-header h3 i {
+        background: var(--primary-gradient);
+        padding: 10px;
+        border-radius: 10px;
+        font-size: 18px;
+    }
+
+    /* Profile Details */
+    .profile-details {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background: linear-gradient(135deg, var(--card-bg-light) 0%, var(--card-bg) 100%);
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s;
+    }
+
+    .detail-item:hover {
+        transform: translateX(10px);
+        border-color: #667eea;
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+    }
+
+    .detail-item label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .detail-item label i {
+        color: #667eea;
+        font-size: 16px;
+    }
+
+    .detail-item span {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .security-level {
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .security-level.high {
+        background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%);
+        color: #00ff88;
+        border: 1px solid rgba(0, 255, 136, 0.4);
+    }
+
+    /* Config Grid */
+    .config-grid {
+        display: grid;
+        gap: 20px;
+    }
+
+    .config-item {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        background: linear-gradient(135deg, var(--card-bg-light) 0%, var(--card-bg) 100%);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .config-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 4px;
+        transition: all 0.3s;
+    }
+
+    .config-item:hover {
+        transform: translateX(10px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .config-item:nth-child(1):hover { border-color: #667eea; }
+    .config-item:nth-child(1)::before { background: var(--primary-gradient); }
+
+    .config-item:nth-child(2):hover { border-color: #00ff88; }
+    .config-item:nth-child(2)::before { background: var(--success-gradient); }
+
+    .config-item:nth-child(3):hover { border-color: #4facfe; }
+    .config-item:nth-child(3)::before { background: var(--info-gradient); }
+
+    .config-item:nth-child(4):hover { border-color: #ffd93d; }
+    .config-item:nth-child(4)::before { background: var(--warning-gradient); }
+
+    .config-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .text-primary {
+        color: #667eea !important;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    }
+
+    .text-success {
+        color: #00ff88 !important;
+        background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%);
+    }
+
+    .text-info {
+        color: #4facfe !important;
+        background: linear-gradient(135deg, rgba(79, 172, 254, 0.2) 0%, rgba(0, 242, 254, 0.2) 100%);
+    }
+
+    .text-warning {
+        color: #ffd93d !important;
+        background: linear-gradient(135deg, rgba(255, 217, 61, 0.2) 0%, rgba(255, 154, 61, 0.2) 100%);
+    }
+
+    .config-details h4 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        color: var(--text-primary);
+    }
+
+    .config-details p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Actions Grid */
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 25px 20px;
+        background: linear-gradient(135deg, var(--card-bg-light) 0%, var(--card-bg) 100%);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--primary-gradient);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+        border-color: #667eea;
+    }
+
+    .action-btn:hover::before {
+        opacity: 0.1;
+    }
+
+    .action-btn i {
+        font-size: 36px;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+        z-index: 1;
+    }
+
+    .action-btn span {
+        font-size: 14px;
+        font-weight: 600;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Stats adicionales */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .stat-box {
+        background: linear-gradient(135deg, var(--card-bg-light) 0%, var(--card-bg) 100%);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        text-align: center;
+        transition: all 0.3s;
+    }
+
+    .stat-box:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    }
+
+    .stat-box .stat-number {
+        font-size: 32px;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 8px;
+    }
+
+    .stat-box .stat-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Animaciones */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .card {
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+    }
+
+    .profile-info {
+        animation-delay: 0.1s;
+    }
+
+    .system-info {
+        animation-delay: 0.2s;
+    }
+
+    .quick-actions {
+        animation-delay: 0.3s;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .profile-content {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .profile-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .profile-header h2 {
+            font-size: 28px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            font-size: 40px;
+        }
+
+        .profile-badges {
+            justify-content: center;
+        }
+
+        .actions-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+
+        .detail-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+    }
+
+    /* Efectos adicionales */
+    .profile-avatar {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .config-icon {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .config-item:nth-child(1) .config-icon { animation-delay: 0s; }
+    .config-item:nth-child(2) .config-icon { animation-delay: 0.5s; }
+    .config-item:nth-child(3) .config-icon { animation-delay: 1s; }
+    .config-item:nth-child(4) .config-icon { animation-delay: 1.5s; }
+
+    /* Prevenir selección de texto */
+    .profile-badge,
+    .security-level,
+    .stat-box,
+    .card-header h3 {
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+    }
+</style>
+
 <div class="profile-container">
-  <div class="profile-header">
-    <h2><i class="fas fa-user"></i> Perfil de Usuario</h2>
-  </div>
-
-  <div class="profile-content">
-    <div class="card profile-info">
-      <div class="card-header">
-        <h3><i class="fas fa-building"></i> Información de la Empresa</h3>
-      </div>
-      <div class="profile-details">
-        <div class="detail-item">
-          <label><i class="fas fa-tag"></i> Nombre de la Empresa:</label>
-          <span>{{ session.get('empresa_nombre', 'No disponible') }}</span>
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <i class="fas fa-building"></i>
         </div>
-        <div class="detail-item">
-          <label><i class="fas fa-id-card"></i> ID de Empresa:</label>
-          <span>{{ session.get('empresa_id', 'No disponible') }}</span>
+        <div class="profile-header-content">
+            <h2>{{ session.get('empresa_nombre', 'Empresa') }}</h2>
+            <p class="profile-subtitle">Sistema de Seguridad Inteligente - Panel de Control</p>
+            <div class="profile-badges">
+                <div class="profile-badge premium">
+                    <i class="fas fa-crown"></i>
+                    Plan Premium
+                </div>
+                <div class="profile-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    Verificado
+                </div>
+                <div class="profile-badge">
+                    <i class="fas fa-clock"></i>
+                    <span id="sessionTime">Calculando...</span>
+                </div>
+            </div>
         </div>
-        <div class="detail-item">
-          <label><i class="fas fa-calendar-alt"></i> Sesión iniciada:</label>
-          <span id="sessionTime">Calculando...</span>
-        </div>
-        <div class="detail-item">
-          <label><i class="fas fa-shield-alt"></i> Nivel de Seguridad:</label>
-          <span class="security-level high">Alto</span>
-        </div>
-      </div>
     </div>
 
-    <div class="card system-info">
-      <div class="card-header">
-        <h3><i class="fas fa-cogs"></i> Configuración del Sistema</h3>
-      </div>
-      <div class="config-grid">
-        <div class="config-item">
-          <div class="config-icon">
-            <i class="fas fa-brain text-primary"></i>
-          </div>
-          <div class="config-details">
-            <h4>Modelo de IA</h4>
-            <p>Facenet512 - Reconocimiento facial avanzado</p>
-          </div>
-        </div>
-        <div class="config-item">
-          <div class="config-icon">
-            <i class="fas fa-percentage text-success"></i>
-          </div>
-          <div class="config-details">
-            <h4>Umbral de Similitud</h4>
-            <p>60% - Precisión optimizada</p>
-          </div>
-        </div>
-        <div class="config-item">
-          <div class="config-icon">
-            <i class="fas fa-envelope text-info"></i>
-          </div>
-          <div class="config-details">
-            <h4>Alertas por Email</h4>
-            <p>Activadas - Notificaciones automáticas</p>
-          </div>
-        </div>
-        <div class="config-item">
-          <div class="config-icon">
-            <i class="fas fa-database text-warning"></i>
-          </div>
-          <div class="config-details">
-            <h4>Base de Datos</h4>
-            <p>MySQL - Almacenamiento seguro</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="profile-content">
+        <!-- Información de la Empresa -->
+        <div class="card profile-info">
+            <div class="card-header">
+                <h3><i class="fas fa-id-badge"></i> Información de la Empresa</h3>
+            </div>
+            <div class="profile-details">
+                <div class="detail-item">
+                    <label><i class="fas fa-building"></i> Nombre de la Empresa:</label>
+                    <span>{{ session.get('empresa_nombre', 'No disponible') }}</span>
+                </div>
+                <div class="detail-item">
+                    <label><i class="fas fa-fingerprint"></i> ID de Empresa:</label>
+                    <span>#{{ session.get('empresa_id', 'N/A') }}</span>
+                </div>
+                <div class="detail-item">
+                    <label><i class="fas fa-envelope"></i> Email Corporativo:</label>
+                    <span>{{ session.get('empresa_email', 'No configurado') }}</span>
+                </div>
+                <div class="detail-item">
+                    <label><i class="fas fa-shield-alt"></i> Nivel de Seguridad:</label>
+                    <span class="security-level high">
+                        <i class="fas fa-check-circle"></i> Alto
+                    </span>
+                </div>
+            </div>
 
-    <div class="card quick-actions">
-      <div class="card-header">
-        <h3><i class="fas fa-bolt"></i> Acciones Rápidas</h3>
-      </div>
-      <div class="actions-grid">
-        <a href="{{ url_for('people_bp.people_page') }}" class="action-btn">
-          <i class="fas fa-user-plus"></i>
-          <span>Agregar Persona</span>
-        </a>
-        <a href="{{ url_for('events_bp.events_page') }}" class="action-btn">
-          <i class="fas fa-history"></i>
-          <span>Ver Historial</span>
-        </a>
-        <a href="{{ url_for('index') }}" class="action-btn">
-          <i class="fas fa-video"></i>
-          <span>Monitoreo en Vivo</span>
-        </a>
-        <a href="{{ url_for('instructions') }}" class="action-btn">
-          <i class="fas fa-question-circle"></i>
-          <span>Ayuda</span>
-        </a>
-      </div>
+            <!-- Estadísticas rápidas -->
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-number" id="totalPeople">0</div>
+                    <div class="stat-label">Personas</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalCameras">0</div>
+                    <div class="stat-label">Cámaras</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalEvents">0</div>
+                    <div class="stat-label">Eventos</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuración del Sistema -->
+        <div class="card system-info">
+            <div class="card-header">
+                <h3><i class="fas fa-cogs"></i> Configuración del Sistema</h3>
+            </div>
+            <div class="config-grid">
+                <div class="config-item">
+                    <div class="config-icon text-primary">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="config-details">
+                        <h4>Modelo de IA</h4>
+                        <p>Facenet512 - Reconocimiento facial de alta precisión con deep learning</p>
+                    </div>
+                </div>
+                <div class="config-item">
+                    <div class="config-icon text-success">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="config-details">
+                        <h4>Umbral de Similitud</h4>
+                        <p>60% - Equilibrio óptimo entre precisión y sensibilidad</p>
+                    </div>
+                </div>
+                <div class="config-item">
+                    <div class="config-icon text-info">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="config-details">
+                        <h4>Alertas por Email</h4>
+                        <p>Activadas - Notificaciones instantáneas ante eventos críticos</p>
+                    </div>
+                </div>
+                <div class="config-item">
+                    <div class="config-icon text-warning">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="config-details">
+                        <h4>Base de Datos</h4>
+                        <p>MySQL - Almacenamiento seguro y cifrado de información</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="card quick-actions">
+            <div class="card-header">
+                <h3><i class="fas fa-bolt"></i> Acciones Rápidas</h3>
+            </div>
+            <div class="actions-grid">
+                <a href="{{ url_for('people_bp.people_page') }}" class="action-btn">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Agregar Persona</span>
+                </a>
+                <a href="{{ url_for('events_bp.events_page') }}" class="action-btn">
+                    <i class="fas fa-history"></i>
+                    <span>Ver Historial</span>
+                </a>
+                <a href="{{ url_for('index') }}" class="action-btn">
+                    <i class="fas fa-video"></i>
+                    <span>Monitoreo en Vivo</span>
+                </a>
+                <a href="{{ url_for('instructions') }}" class="action-btn">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Centro de Ayuda</span>
+                </a>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  // Calcular tiempo de sesión (simulado)
-  const sessionStart = new Date();
-  sessionStart.setHours(sessionStart.getHours() - 1); // Simular 1 hora de sesión
-  
-  function updateSessionTime() {
-    const now = new Date();
-    const diff = now - sessionStart;
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    // Calcular tiempo de sesión
+    const sessionStart = new Date();
+    sessionStart.setHours(sessionStart.getHours() - 1);
     
-    document.getElementById('sessionTime').textContent = `${hours}h ${minutes}m`;
-  }
-  
-  updateSessionTime();
-  setInterval(updateSessionTime, 60000); // Actualizar cada minuto
+    function updateSessionTime() {
+        const now = new Date();
+        const diff = now - sessionStart;
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        document.getElementById('sessionTime').textContent = `${hours}h ${minutes}m activo`;
+    }
+    
+    updateSessionTime();
+    setInterval(updateSessionTime, 60000);
+
+    // Cargar estadísticas
+    async function loadStats() {
+        try {
+            // Cargar personas
+            const peopleRes = await fetch('/api/people');
+            const people = await peopleRes.json();
+            animateCounter('totalPeople', people.length);
+
+            // Cargar cámaras
+            const camerasRes = await fetch('/api/cameras');
+            const cameras = await camerasRes.json();
+            animateCounter('totalCameras', cameras.length);
+
+            // Cargar eventos
+            const eventsRes = await fetch('/api/events');
+            const events = await eventsRes.json();
+            animateCounter('totalEvents', events.length);
+        } catch (error) {
+            console.error('Error cargando estadísticas:', error);
+        }
+    }
+
+    function animateCounter(id, target) {
+        const element = document.getElementById(id);
+        let current = 0;
+        const increment = Math.ceil(target / 30);
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.textContent = target;
+                clearInterval(timer);
+            } else {
+                element.textContent = current;
+            }
+        }, 30);
+    }
+
+    loadStats();
+
+    console.log('%c👤 Perfil de Usuario', 'color: #667eea; font-size: 16px; font-weight: bold;');
+    console.log('%cSistema cargado correctamente', 'color: #00ff88; font-size: 12px;');
 });
 </script>
+
 {% endblock %}

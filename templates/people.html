@@ -1,126 +1,1326 @@
 {% extends "layout.html" %}
 {% block content %}
-<h2>Gestión de Personas</h2>
 
-<form id="formPerson">
-  <label>Nombre:</label>
-  <input type="text" name="nombre" required>
-  <label>Cargo:</label>
-  <input type="text" name="cargo">
-  <label>ID empleado:</label>
-  <input type="text" name="employee_id">
-  <button type="submit">Agregar Persona</button>
-</form>
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        --card-bg: #1a1f3a;
+        --card-bg-light: #242b47;
+        --dark-bg: #0f1425;
+        --border-color: #2d3548;
+        --text-primary: #ffffff;
+        --text-secondary: #8b92a8;
+        --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
 
-<!-- Agregado modal para editar personas -->
-<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
-  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:8px; min-width:300px;">
-    <h3>Editar Persona</h3>
-    <form id="editForm">
-      <input type="hidden" id="editId">
-      <label>Nombre:</label>
-      <input type="text" id="editNombre" required><br><br>
-      <label>Cargo:</label>
-      <input type="text" id="editCargo"><br><br>
-      <label>ID empleado:</label>
-      <input type="text" id="editEmployeeId"><br><br>
-      <button type="submit">Guardar Cambios</button>
-      <button type="button" onclick="closeEditModal()">Cancelar</button>
-    </form>
-  </div>
+    body {
+        background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+        color: var(--text-primary);
+    }
+
+    .people-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Header */
+    .page-header {
+        background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-bg) 100%);
+        padding: 30px 40px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--primary-gradient);
+    }
+
+    .page-header h2 {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        color: var(--text-primary);
+    }
+
+    .page-header h2 i {
+        background: var(--primary-gradient);
+        padding: 12px;
+        border-radius: 12px;
+        font-size: 24px;
+    }
+
+    /* Layout principal */
+    .main-layout {
+        display: grid;
+        grid-template-columns: 400px 1fr;
+        gap: 30px;
+        align-items: start;
+    }
+
+    /* Formulario */
+    .form-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+        position: sticky;
+        top: 20px;
+    }
+
+    .form-card h3 {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 25px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--text-primary);
+    }
+
+    .form-card h3 i {
+        background: var(--primary-gradient);
+        padding: 10px;
+        border-radius: 10px;
+        font-size: 18px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        background: var(--card-bg-light);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        color: white;
+        width: 100%;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn-secondary {
+        background: rgba(139, 146, 168, 0.2);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(139, 146, 168, 0.3);
+    }
+
+    .btn-success {
+        background: var(--success-gradient);
+        color: white;
+        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
+    }
+
+    .btn-danger {
+        background: var(--danger-gradient);
+        color: white;
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+    }
+
+    .btn-sm {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+
+    /* Tabla */
+    .table-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+    }
+
+    .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .table-header h3 {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--text-primary);
+    }
+
+    .table-header h3 i {
+        color: #667eea;
+    }
+
+    .stats-badges {
+        display: flex;
+        gap: 15px;
+    }
+
+    .stat-badge {
+        padding: 8px 16px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #667eea;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        border-radius: 12px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    thead {
+        background: linear-gradient(135deg, var(--card-bg-light) 0%, var(--card-bg) 100%);
+    }
+
+    thead th {
+        padding: 16px;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    thead th:first-child {
+        border-radius: 12px 0 0 0;
+    }
+
+    thead th:last-child {
+        border-radius: 0 12px 0 0;
+    }
+
+    tbody tr {
+        background: rgba(36, 43, 71, 0.3);
+        transition: all 0.3s;
+    }
+
+    tbody tr:hover {
+        background: rgba(102, 126, 234, 0.1);
+        transform: scale(1.01);
+    }
+
+    tbody td {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+        font-size: 14px;
+    }
+
+    tbody tr:last-child td:first-child {
+        border-radius: 0 0 0 12px;
+    }
+
+    tbody tr:last-child td:last-child {
+        border-radius: 0 0 12px 0;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: rgba(0, 255, 136, 0.2);
+        color: #00ff88;
+        border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+
+    .badge-warning {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .file-upload-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    .file-upload-wrapper input[type=file] {
+        position: absolute;
+        left: -9999px;
+    }
+
+    .file-upload-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: rgba(79, 172, 254, 0.2);
+        border: 1px solid rgba(79, 172, 254, 0.3);
+        border-radius: 8px;
+        color: #4facfe;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .file-upload-label:hover {
+        background: rgba(79, 172, 254, 0.3);
+        transform: translateY(-2px);
+    }
+
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 35px;
+        min-width: 500px;
+        max-width: 90%;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.7);
+        border: 1px solid var(--border-color);
+        animation: slideUp 0.3s;
+        position: relative;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .modal-header h3 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--text-primary);
+    }
+
+    .modal-header h3 i {
+        color: #667eea;
+    }
+
+    .close-modal {
+        background: rgba(255, 107, 107, 0.2);
+        border: 1px solid rgba(255, 107, 107, 0.3);
+        color: #ff6b6b;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 18px;
+    }
+
+    .close-modal:hover {
+        background: rgba(255, 107, 107, 0.3);
+        transform: rotate(90deg);
+    }
+
+    .modal-footer {
+        display: flex;
+        gap: 12px;
+        margin-top: 25px;
+        justify-content: flex-end;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+    }
+
+    .empty-state i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    .empty-state h4 {
+        font-size: 20px;
+        margin: 0 0 10px 0;
+        color: var(--text-primary);
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .main-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .form-card {
+            position: relative;
+            top: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-header h2 {
+            font-size: 24px;
+        }
+
+        .table-header {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .stats-badges {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .modal-content {
+            min-width: auto;
+            width: 90%;
+            padding: 25px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .action-buttons .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .file-upload-label {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Animaciones de carga */
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .loading {
+        animation: pulse 1.5s infinite;
+    }
+</style>
+
+<div class="people-container">
+    <div class="page-header">
+        <h2>
+            <i class="fas fa-users"></i>
+            Gestión de Personas
+        </h2>
+    </div>
+
+    <div class="main-layout">
+        <!-- Formulario de Agregar -->
+        <div class="form-card">
+            <h3>
+                <i class="fas fa-user-plus"></i>
+                Agregar Persona
+            </h3>
+            <form id="formPerson">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Nombre Completo</label>
+                    <input type="text" name="nombre" placeholder="Ej: Juan Pérez" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-briefcase"></i> Cargo</label>
+                    <input type="text" name="cargo" placeholder="Ej: Gerente de Ventas">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-id-card"></i> ID Empleado</label>
+                    <input type="text" name="employee_id" placeholder="Ej: EMP-001">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i>
+                    Agregar Persona
+                </button>
+            </form>
+        </div>
+
+        <!-- Tabla de Personas -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3>
+                    <i class="fas fa-list"></i>
+                    Lista de Personas
+                </h3>
+                <div class="stats-badges">
+                    <div class="stat-badge">
+                        <i class="fas fa-users"></i>
+                        <span id="totalCount">0</span> Total
+                    </div>
+                    <div class="stat-badge">
+                        <i class="fas fa-camera"></i>
+                        <span id="withPhotos">0</span> Con Foto
+                    </div>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table id="peopleTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Cargo</th>
+                            <th>ID Empleado</th>
+                            <th>Embeddings</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Se carga dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
-<table id="peopleTable">
-  <thead>
-    <tr>
-      <th>ID</th><th>Nombre</th><th>Cargo</th><th>Empleado</th><th>Embeddings</th><th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+<!-- Modal de Edición -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-user-edit"></i>
+                Editar Persona
+            </h3>
+            <button class="close-modal" onclick="closeEditModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="editForm">
+            <input type="hidden" id="editId">
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Nombre Completo</label>
+                <input type="text" id="editNombre" required>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-briefcase"></i> Cargo</label>
+                <input type="text" id="editCargo">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-id-card"></i> ID Empleado</label>
+                <input type="text" id="editEmployeeId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i>
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  loadPeople();
-  document.getElementById("formPerson").addEventListener("submit", async e => {
-    e.preventDefault();
-    let fd = new FormData(e.target);
-    let data = Object.fromEntries(fd.entries());
-    let res = await fetch("/api/people", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data)});
-    let j = await res.json();
-    if (j.ok) { alert("Persona creada"); loadPeople(); e.target.reset(); }
-  });
+    loadPeople();
 
-  document.getElementById("editForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    let id = document.getElementById("editId").value;
-    let data = {
-      nombre: document.getElementById("editNombre").value,
-      cargo: document.getElementById("editCargo").value,
-      employee_id: document.getElementById("editEmployeeId").value
-    };
-    let res = await fetch(`/api/people/${id}`, {method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data)});
-    let j = await res.json();
-    if (j.ok) { 
-      alert("Persona actualizada"); 
-      closeEditModal(); 
-      loadPeople(); 
-    } else {
-      alert("Error: " + (j.error || "No se pudo actualizar"));
-    }
-  });
+    // Agregar persona
+    document.getElementById("formPerson").addEventListener("submit", async e => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Agregando...';
+        btn.disabled = true;
+
+        let fd = new FormData(e.target);
+        let data = Object.fromEntries(fd.entries());
+        
+        try {
+            let res = await fetch("/api/people", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            });
+            let j = await res.json();
+            
+            if (j.ok) {
+                showNotification('success', 'Persona agregada exitosamente');
+                loadPeople();
+                e.target.reset();
+            } else {
+                showNotification('error', 'Error al agregar persona');
+            }
+        } catch (error) {
+            showNotification('error', 'Error de conexión');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    // Editar persona
+    document.getElementById("editForm").addEventListener("submit", async e => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        btn.disabled = true;
+
+        let id = document.getElementById("editId").value;
+        let data = {
+            nombre: document.getElementById("editNombre").value,
+            cargo: document.getElementById("editCargo").value,
+            employee_id: document.getElementById("editEmployeeId").value
+        };
+
+        try {
+            let res = await fetch(`/api/people/${id}`, {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            });
+            let j = await res.json();
+            
+            if (j.ok) {
+                showNotification('success', 'Persona actualizada exitosamente');
+                closeEditModal();
+                loadPeople();
+            } else {
+                showNotification('error', j.error || 'No se pudo actualizar');
+            }
+        } catch (error) {
+            showNotification('error', 'Error de conexión');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
 });
 
 async function loadPeople() {
-  let res = await fetch("/api/people");
-  let data = await res.json();
-  let tbody = document.querySelector("#peopleTable tbody");
-  tbody.innerHTML = "";
-  data.forEach(p => {
-    let tr = document.createElement("tr");
-    tr.innerHTML = `<td>${p.id}</td><td>${p.nombre}</td><td>${p.cargo||""}</td><td>${p.employee_id||""}</td>
-                    <td>${p.embeddings}</td>
-                    <td>
-                      <input type="file" onchange="uploadPhoto(${p.id},this.files[0])" style="margin-bottom:5px;"><br>
-                      <button onclick="editPerson(${p.id},'${p.nombre}','${p.cargo||''}','${p.employee_id||''}')" style="margin-right:5px; background:#007bff; color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer;">Editar</button>
-                      <button onclick="deletePerson(${p.id})" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer;">Eliminar</button>
-                    </td>`;
-    tbody.appendChild(tr);
-  });
+    try {
+        let res = await fetch("/api/people");
+        let data = await res.json();
+        let tbody = document.querySelector("#peopleTable tbody");
+        
+        // Actualizar estadísticas
+        document.getElementById('totalCount').textContent = data.length;
+        document.getElementById('withPhotos').textContent = data.filter(p => p.embeddings > 0).length;
+
+        if (data.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="fas fa-user-plus"></i>
+                            <h4>No hay personas registradas</h4>
+                            <p>Comienza agregando tu primera persona</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = "";
+        data.forEach(p => {
+            let tr = document.createElement("tr");
+            const embedBadge = p.embeddings > 0 
+                ? `<span class="badge badge-success"><i class="fas fa-check-circle"></i> ${p.embeddings}</span>`
+                : `<span class="badge badge-warning"><i class="fas fa-exclamation-circle"></i> 0</span>`;
+            
+            tr.innerHTML = `
+                <td><strong>#${p.id}</strong></td>
+                <td>${p.nombre}</td>
+                <td>${p.cargo || '<span style="color: var(--text-secondary)">Sin cargo</span>'}</td>
+                <td>${p.employee_id || '<span style="color: var(--text-secondary)">Sin ID</span>'}</td>
+                <td>${embedBadge}</td>
+                <td>
+                    <div class="action-buttons">
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="file-${p.id}" accept="image/*" onchange="uploadPhoto(${p.id}, this.files[0])">
+                            <label for="file-${p.id}" class="file-upload-label">
+                                <i class="fas fa-camera"></i>
+                                Subir Foto
+                            </label>
+                        </div>
+                        <button onclick="editPerson(${p.id},'${escapeHtml(p.nombre)}','${escapeHtml(p.cargo||'')}','${escapeHtml(p.employee_id||'')}')" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-edit"></i>
+                            Editar
+                        </button>
+                        <button onclick="deletePerson(${p.id})" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i>
+                            Eliminar
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (error) {
+        showNotification('error', 'Error al cargar personas');
+    }
 }
 
-async function uploadPhoto(pid,file){
-  let fd = new FormData();
-  fd.append("file", file);
-  let res = await fetch("/api/people/"+pid+"/photo",{method:"POST", body:fd});
-  let j = await res.json();
-  if(j.ok){ alert("Foto subida y embedding guardado"); loadPeople(); }
-  else{ alert("Error: "+j.error); }
+function escapeHtml(text) {
+    return text.replace(/'/g, "\\'");
+}
+
+async function uploadPhoto(pid, file) {
+    if (!file) return;
+    
+    showNotification('info', 'Subiendo foto...');
+    
+    let fd = new FormData();
+    fd.append("file", file);
+    
+    try {
+        let res = await fetch(`/api/people/${pid}/photo`, {
+            method: "POST",
+            body: fd
+        });
+        let j = await res.json();
+        
+        if (j.ok) {
+            showNotification('success', 'Foto subida y embedding guardado');
+            loadPeople();
+        } else {
+            showNotification('error', j.error || 'Error al subir foto');
+        }
+    } catch (error) {
+        showNotification('error', 'Error de conexión');
+    }
 }
 
 function editPerson(id, nombre, cargo, employeeId) {
-  document.getElementById("editId").value = id;
-  document.getElementById("editNombre").value = nombre;
-  document.getElementById("editCargo").value = cargo;
-  document.getElementById("editEmployeeId").value = employeeId;
-  document.getElementById("editModal").style.display = "block";
+    document.getElementById("editId").value = id;
+    document.getElementById("editNombre").value = nombre;
+    document.getElementById("editCargo").value = cargo;
+    document.getElementById("editEmployeeId").value = employeeId;
+    document.getElementById("editModal").classList.add('active');
 }
 
 function closeEditModal() {
-  document.getElementById("editModal").style.display = "none";
+    document.getElementById("editModal").classList.remove('active');
 }
 
 async function deletePerson(id) {
-  if (confirm("¿Estás seguro de que quieres eliminar esta persona?")) {
-    let res = await fetch(`/api/people/${id}`, {method:"DELETE"});
-    let j = await res.json();
-    if (j.ok) { 
-      alert("Persona eliminada"); 
-      loadPeople(); 
-    } else {
-      alert("Error: " + (j.error || "No se pudo eliminar"));
+    if (!confirm("¿Estás seguro de que quieres eliminar esta persona? Esta acción no se puede deshacer.")) {
+        return;
     }
-  }
+
+    try {
+        let res = await fetch(`/api/people/${id}`, {method: "DELETE"});
+        let j = await res.json();
+        
+        if (j.ok) {
+            showNotification('success', 'Persona eliminada exitosamente');
+            loadPeople();
+        } else {
+            showNotification('error', j.error || 'No se pudo eliminar');
+        }
+    } catch (error) {
+        showNotification('error', 'Error de conexión');
+    }
 }
+
+// Sistema de notificaciones
+function showNotification(type, message) {
+    const container = document.getElementById('notificationContainer') || createNotificationContainer();
+    
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-times-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    
+    notification.innerHTML = `
+        <i class="fas ${icons[type]}"></i>
+        <span>${message}</span>
+    `;
+    
+    notification.style.cssText = `
+        position: relative;
+        padding: 12px 20px;
+        margin-bottom: 10px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideInRight 0.3s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    
+    const colors = {
+        success: '#00ff88',
+        error: '#ff6b6b',
+        warning: '#ffc107',
+        info: '#4facfe'
+    };
+    
+    notification.style.borderLeftColor = colors[type];
+    notification.querySelector('i').style.color = colors[type];
+    
+    container.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideInRight 0.3s reverse';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+function createNotificationContainer() {
+    const container = document.createElement('div');
+    container.id = 'notificationContainer';
+    container.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        min-width: 300px;
+    `;
+    document.body.appendChild(container);
+    return container;
+}
+
+// Cerrar modal con ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeEditModal();
+    }
+});
+
+// Cerrar modal al hacer click fuera
+document.getElementById('editModal').addEventListener('click', (e) => {
+    if (e.target.id === 'editModal') {
+        closeEditModal();
+    }
+});
+
+console.log('%c👥 Gestión de Personas', 'color: #667eea; font-size: 16px; font-weight: bold;');
+console.log('%cSistema cargado correctamente', 'color: #00ff88; font-size: 12px;');
 </script>
+
+<style>
+/* Animación para notificaciones */
+@keyframes slideInRight {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Mejoras adicionales */
+.table-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: var(--dark-bg);
+    border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: var(--primary-gradient);
+    border-radius: 4px;
+}
+
+/* Efecto de carga en la tabla */
+.table-loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.table-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        left: 100%;
+    }
+}
+
+/* Efectos hover mejorados */
+.form-group input:hover {
+    border-color: rgba(102, 126, 234, 0.5);
+}
+
+tbody tr {
+    cursor: default;
+}
+
+/* Tooltip personalizado */
+[title] {
+    position: relative;
+}
+
+/* Estado de archivo seleccionado */
+input[type="file"]:valid + label {
+    background: rgba(0, 255, 136, 0.2);
+    border-color: rgba(0, 255, 136, 0.3);
+    color: #00ff88;
+}
+
+/* Animación del botón submit */
+.btn:active {
+    transform: scale(0.98);
+}
+
+/* Mejora visual para IDs */
+tbody td:first-child strong {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #667eea;
+}
+
+/* Estados de los badges */
+.badge i {
+    font-size: 10px;
+}
+
+/* Efecto de foco en inputs */
+.form-group input:focus {
+    transform: translateY(-2px);
+}
+
+/* Animación de entrada para las filas */
+@keyframes fadeInRow {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+tbody tr {
+    animation: fadeInRow 0.3s ease forwards;
+}
+
+tbody tr:nth-child(1) { animation-delay: 0.05s; }
+tbody tr:nth-child(2) { animation-delay: 0.1s; }
+tbody tr:nth-child(3) { animation-delay: 0.15s; }
+tbody tr:nth-child(4) { animation-delay: 0.2s; }
+tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+/* Mejorar el aspecto del modal backdrop */
+.modal::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+/* Efecto de pulso en estadísticas */
+@keyframes pulse-stat {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.stat-badge:hover {
+    animation: pulse-stat 0.5s ease;
+}
+
+/* Separador visual entre secciones */
+.form-card::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50%;
+    height: 2px;
+    background: var(--primary-gradient);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.form-card:hover::after {
+    opacity: 0.3;
+}
+
+/* Mejorar el estado de los botones deshabilitados */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Efecto de brillo en las cards */
+.form-card,
+.table-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.form-card::before,
+.table-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+    transition: left 0.5s;
+}
+
+.form-card:hover::before,
+.table-card:hover::before {
+    left: 100%;
+}
+
+/* Mejorar contraste en texto secundario */
+.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* Estilos para cuando no hay datos */
+.empty-state {
+    animation: fadeIn 0.5s;
+}
+
+.empty-state i {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Transición suave para todos los elementos interactivos */
+* {
+    transition-property: background-color, border-color, color, transform, box-shadow;
+    transition-duration: 0.3s;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Evitar transiciones en animaciones de entrada */
+tbody tr,
+.notification,
+.modal-content {
+    transition: none;
+}
+
+/* Restablecer transiciones después de la animación */
+tbody tr {
+    animation: fadeInRow 0.3s ease forwards;
+}
+
+tbody tr.loaded {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Loading spinner personalizado */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* Mejoras para dispositivos táctiles */
+@media (hover: none) {
+    .btn:hover,
+    .file-upload-label:hover,
+    tbody tr:hover {
+        transform: none;
+    }
+    
+    .btn:active,
+    .file-upload-label:active {
+        transform: scale(0.95);
+    }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #000000 0%, #0a0e27 100%);
+    }
+}
+
+/* Accesibilidad - focus visible */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Prevenir text selection en elementos UI */
+.btn,
+.badge,
+.stat-badge,
+.close-modal,
+thead th {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+
+/* Cursor pointer en elementos clickeables */
+.btn,
+.file-upload-label,
+.close-modal,
+tbody tr,
+.stat-badge {
+    cursor: pointer;
+}
+
+/* Mejorar legibilidad en tablas con mucho contenido */
+tbody td {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+tbody td:nth-child(6) {
+    max-width: none;
+    white-space: normal;
+}
+
+/* Responsivo mejorado para tablets */
+@media (max-width: 1024px) {
+    .main-layout {
+        grid-template-columns: 380px 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .main-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-card {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+}
+
+/* Ajustes finales para móviles pequeños */
+@media (max-width: 480px) {
+    .people-container {
+        padding: 15px;
+    }
+    
+    .page-header {
+        padding: 20px;
+    }
+    
+    .form-card,
+    .table-card {
+        padding: 20px;
+    }
+    
+    .modal-content {
+        padding: 20px;
+    }
+    
+    .page-header h2 {
+        font-size: 20px;
+    }
+    
+    table {
+        font-size: 12px;
+    }
+    
+    thead th,
+    tbody td {
+        padding: 10px 8px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .form-card,
+    .page-header,
+    .action-buttons {
+        display: none !important;
+    }
+    
+    .table-card {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    body {
+        background: white;
+        color: black;
+    }
+}
+</style>
+
 {% endblock %}

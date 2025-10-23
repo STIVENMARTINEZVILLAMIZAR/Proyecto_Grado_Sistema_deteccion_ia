@@ -1,32 +1,1369 @@
 {% extends "layout.html" %}
 {% block content %}
-<h2>Eventos</h2>
-<table id="eventsTable">
-  <thead>
-    <tr><th>ID</th><th>Persona</th><th>Etiqueta</th><th>Desconocido</th><th>Similitud</th><th>Cámara</th><th>Fecha</th><th>Snapshot</th></tr>
-  </thead>
-  <tbody></tbody>
-</table>
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        --warning-gradient: linear-gradient(135deg, #ffd93d 0%, #ff9a3d 100%);
+        --card-bg: #1a1f3a;
+        --card-bg-light: #242b47;
+        --dark-bg: #0f1425;
+        --border-color: #2d3548;
+        --text-primary: #ffffff;
+        --text-secondary: #8b92a8;
+        --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    body {
+        background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+        color: var(--text-primary);
+    }
+
+    .events-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Header */
+    .page-header {
+        background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-bg) 100%);
+        padding: 30px 40px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--primary-gradient);
+    }
+
+    .page-header h2 {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        color: var(--text-primary);
+    }
+
+    .page-header h2 i {
+        background: var(--primary-gradient);
+        padding: 12px;
+        border-radius: 12px;
+        font-size: 24px;
+    }
+
+    /* Controles superiores */
+    .controls-bar {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .filters-group {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .filter-item label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .filter-select,
+    .search-input {
+        padding: 10px 16px;
+        background: var(--card-bg-light);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 14px;
+        transition: all 0.3s;
+        min-width: 180px;
+    }
+
+    .search-input {
+        min-width: 300px;
+    }
+
+    .filter-select:focus,
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .stats-group {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .stat-badge {
+        padding: 10px 18px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .stat-badge.success {
+        background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 212, 255, 0.1) 100%);
+        border-color: rgba(0, 255, 136, 0.3);
+        color: #00ff88;
+    }
+
+    .stat-badge.danger {
+        background: linear-gradient(135deg, rgba(255, 107, 107, 0.2) 0%, rgba(238, 90, 111, 0.1) 100%);
+        border-color: rgba(255, 107, 107, 0.3);
+        color: #ff6b6b;
+    }
+
+    .stat-badge.primary {
+        color: #667eea;
+    }
+
+    /* Tabla */
+    .table-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 0;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: calc(100vh - 400px);
+    }
+
+    .table-wrapper::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-track {
+        background: var(--dark-bg);
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: var(--primary-gradient);
+        border-radius: 4px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    thead {
+        background: linear-gradient(135deg, var(--card-bg-light) 0%, var(--card-bg) 100%);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    thead th {
+        padding: 18px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--border-color);
+        white-space: nowrap;
+    }
+
+    tbody tr {
+        background: rgba(36, 43, 71, 0.3);
+        transition: all 0.3s;
+        animation: fadeInRow 0.3s ease forwards;
+    }
+
+    tbody tr:hover {
+        background: rgba(102, 126, 234, 0.1);
+        transform: scale(1.005);
+    }
+
+    tbody tr.unknown {
+        background: rgba(255, 107, 107, 0.15);
+    }
+
+    tbody tr.unknown:hover {
+        background: rgba(255, 107, 107, 0.25);
+    }
+
+    tbody td {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+        font-size: 14px;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .badge-success {
+        background: rgba(0, 255, 136, 0.2);
+        color: #00ff88;
+        border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+
+    .badge-danger {
+        background: rgba(255, 107, 107, 0.2);
+        color: #ff6b6b;
+        border: 1px solid rgba(255, 107, 107, 0.3);
+    }
+
+    .badge-warning {
+        background: rgba(255, 217, 61, 0.2);
+        color: #ffd93d;
+        border: 1px solid rgba(255, 217, 61, 0.3);
+    }
+
+    .badge-info {
+        background: rgba(79, 172, 254, 0.2);
+        color: #4facfe;
+        border: 1px solid rgba(79, 172, 254, 0.3);
+    }
+
+    .similarity-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .similarity-progress {
+        flex: 1;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .similarity-fill {
+        height: 100%;
+        background: var(--success-gradient);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+
+    .similarity-text {
+        font-size: 13px;
+        font-weight: 600;
+        min-width: 45px;
+        text-align: right;
+    }
+
+    .snapshot-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 2px solid var(--border-color);
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .snapshot-img:hover {
+        transform: scale(1.1);
+        border-color: #667eea;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .no-snapshot {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, rgba(139, 146, 168, 0.1) 0%, rgba(139, 146, 168, 0.05) 100%);
+        border: 1px dashed var(--border-color);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        font-size: 24px;
+    }
+
+    .datetime-text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .date-part {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .time-part {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    .camera-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: linear-gradient(135deg, rgba(79, 172, 254, 0.2) 0%, rgba(0, 242, 254, 0.1) 100%);
+        border: 1px solid rgba(79, 172, 254, 0.3);
+        border-radius: 10px;
+        color: #4facfe;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--text-secondary);
+    }
+
+    .empty-state i {
+        font-size: 80px;
+        margin-bottom: 25px;
+        opacity: 0.3;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .empty-state h3 {
+        font-size: 24px;
+        margin: 0 0 12px 0;
+        color: var(--text-primary);
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 16px;
+    }
+
+    /* Modal de imagen */
+    .image-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 10000;
+        backdrop-filter: blur(10px);
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s;
+    }
+
+    .image-modal.active {
+        display: flex;
+    }
+
+    .image-modal-content {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 12px;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.8);
+        animation: zoomIn 0.3s;
+    }
+
+    @keyframes zoomIn {
+        from {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .close-image-modal {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 107, 107, 0.9);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .close-image-modal:hover {
+        transform: rotate(90deg) scale(1.1);
+        background: #ff6b6b;
+    }
+
+    /* Loading indicator */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(26, 31, 58, 0.95);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        border-radius: 16px;
+    }
+
+    .loading-overlay.active {
+        display: flex;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(102, 126, 234, 0.2);
+        border-top-color: #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Auto-update indicator */
+    .auto-update-badge {
+        padding: 8px 16px;
+        background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 212, 255, 0.1) 100%);
+        border: 1px solid rgba(0, 255, 136, 0.3);
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #00ff88;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background: #00ff88;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #00ff88;
+        animation: pulse-dot 1.5s infinite;
+    }
+
+    @keyframes pulse-dot {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.3);
+            opacity: 0.7;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .controls-bar {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-group {
+            justify-content: space-between;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-header h2 {
+            font-size: 24px;
+        }
+
+        .filters-group {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .filter-item {
+            width: 100%;
+        }
+
+        .filter-select,
+        .search-input {
+            width: 100%;
+            min-width: auto;
+        }
+
+        .stats-group {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .stat-badge {
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        table {
+            font-size: 12px;
+        }
+
+        thead th,
+        tbody td {
+            padding: 10px 8px;
+        }
+
+        .snapshot-img,
+        .no-snapshot {
+            width: 60px;
+            height: 60px;
+        }
+    }
+
+    /* Animaciones */
+    @keyframes fadeInRow {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+
+<div class="events-container">
+    <div class="page-header">
+        <h2>
+            <i class="fas fa-history"></i>
+            Registro de Eventos
+        </h2>
+    </div>
+
+    <div class="controls-bar">
+        <div class="filters-group">
+            <div class="filter-item">
+                <label>Buscar</label>
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, cámara...">
+            </div>
+            <div class="filter-item">
+                <label>Tipo</label>
+                <select id="filterType" class="filter-select">
+                    <option value="all">Todos los eventos</option>
+                    <option value="known">Solo conocidos</option>
+                    <option value="unknown">Solo desconocidos</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>Cámara</label>
+                <select id="filterCamera" class="filter-select">
+                    <option value="all">Todas las cámaras</option>
+                </select>
+            </div>
+        </div>
+        <div class="stats-group">
+            <div class="stat-badge primary">
+                <i class="fas fa-list"></i>
+                <span id="totalEvents">0</span> Total
+            </div>
+            <div class="stat-badge success">
+                <i class="fas fa-user-check"></i>
+                <span id="knownEvents">0</span> Conocidos
+            </div>
+            <div class="stat-badge danger">
+                <i class="fas fa-user-times"></i>
+                <span id="unknownEvents">0</span> Desconocidos
+            </div>
+            <div class="auto-update-badge">
+                <span class="pulse-dot"></span>
+                Auto-actualización
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+        </div>
+        <div class="table-wrapper">
+            <table id="eventsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Persona</th>
+                        <th>Estado</th>
+                        <th>Similitud</th>
+                        <th>Cámara</th>
+                        <th>Fecha y Hora</th>
+                        <th>Captura</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Se carga dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de imagen -->
+<div class="image-modal" id="imageModal">
+    <button class="close-image-modal" onclick="closeImageModal()">
+        <i class="fas fa-times"></i>
+    </button>
+    <img id="modalImage" class="image-modal-content" src="" alt="Captura ampliada">
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  loadEvents();
-  setInterval(loadEvents, 5000);
-});
+    let allEvents = [];
+    let cameras = new Set();
 
-async function loadEvents(){
-  let res = await fetch("/api/events");
-  let data = await res.json();
-  let tbody = document.querySelector("#eventsTable tbody");
-  tbody.innerHTML = "";
-  data.forEach(e => {
-    let tr = document.createElement("tr");
-    tr.innerHTML = `<td>${e.id}</td><td>${e.persona_id||""}</td><td>${e.label}</td>
-                    <td>${e.es_desconocido}</td><td>${e.similarity? e.similarity.toFixed(2):""}</td>
-                    <td>${e.camera}</td><td>${e.created_at}</td>
-                    <td>${e.snapshot? "<img src='"+e.snapshot+"' width=80>":""}</td>`;
-    tbody.appendChild(tr);
-  });
-}
+    loadEvents();
+    const interval = setInterval(loadEvents, 5000);
+
+    // Filtros
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('filterType').addEventListener('change', applyFilters);
+    document.getElementById('filterCamera').addEventListener('change', applyFilters);
+
+    async function loadEvents() {
+        const loading = document.getElementById('loadingOverlay');
+        const isFirstLoad = allEvents.length === 0;
+        
+        if (isFirstLoad) {
+            loading.classList.add('active');
+        }
+
+        try {
+            let res = await fetch("/api/events");
+            let data = await res.json();
+            
+            allEvents = data.reverse(); // Más recientes primero
+            
+            // Extraer cámaras únicas
+            cameras.clear();
+            data.forEach(e => cameras.add(e.camera));
+            updateCameraFilter();
+            
+            applyFilters();
+            updateStats();
+        } catch (error) {
+            console.error('Error cargando eventos:', error);
+        } finally {
+            if (isFirstLoad) {
+                loading.classList.remove('active');
+            }
+        }
+    }
+
+    function updateCameraFilter() {
+        const select = document.getElementById('filterCamera');
+        const currentValue = select.value;
+        
+        select.innerHTML = '<option value="all">Todas las cámaras</option>';
+        Array.from(cameras).sort().forEach(cam => {
+            const option = document.createElement('option');
+            option.value = cam;
+            option.textContent = cam;
+            select.appendChild(option);
+        });
+        
+        select.value = currentValue;
+    }
+
+    function applyFilters() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const type = document.getElementById('filterType').value;
+        const camera = document.getElementById('filterCamera').value;
+
+        let filtered = allEvents.filter(e => {
+            const matchSearch = !search || 
+                e.label.toLowerCase().includes(search) ||
+                e.camera.toLowerCase().includes(search);
+            
+            const matchType = type === 'all' ||
+                (type === 'known' && !e.es_desconocido) ||
+                (type === 'unknown' && e.es_desconocido);
+            
+            const matchCamera = camera === 'all' || e.camera === camera;
+
+            return matchSearch && matchType && matchCamera;
+        });
+
+        renderEvents(filtered);
+    }
+
+    function renderEvents(events) {
+        let tbody = document.querySelector("#eventsTable tbody");
+        
+        if (events.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>No se encontraron eventos</h3>
+                            <p>Ajusta los filtros o espera nuevos registros</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = "";
+        events.forEach((e, index) => {
+            let tr = document.createElement("tr");
+            if (e.es_desconocido) {
+                tr.classList.add('unknown');
+            }
+            tr.style.animationDelay = `${index * 0.03}s`;
+
+            const date = new Date(e.created_at);
+            const datePart = date.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+            const timePart = date.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            const statusBadge = e.es_desconocido
+                ? `<span class="badge badge-danger"><i class="fas fa-user-times"></i> Desconocido</span>`
+                : `<span class="badge badge-success"><i class="fas fa-user-check"></i> Conocido</span>`;
+
+            const similarityHtml = e.similarity !== null && e.similarity !== undefined
+                ? `<div class="similarity-bar">
+                     <div class="similarity-progress">
+                       <div class="similarity-fill" style="width: ${(e.similarity * 100).toFixed(0)}%; background: ${e.similarity >= 0.7 ? 'var(--success-gradient)' : e.similarity >= 0.5 ? 'var(--warning-gradient)' : 'var(--danger-gradient)'}"></div>
+                     </div>
+                     <span class="similarity-text" style="color: ${e.similarity >= 0.7 ? '#00ff88' : e.similarity >= 0.5 ? '#ffd93d' : '#ff6b6b'}">${(e.similarity * 100).toFixed(0)}%</span>
+                   </div>`
+                : '<span style="color: var(--text-secondary)">N/A</span>';
+
+            const snapshotHtml = e.snapshot
+                ? `<img src="${e.snapshot}" class="snapshot-img" onclick="openImageModal('${e.snapshot}')" alt="Captura">`
+                : `<div class="no-snapshot"><i class="fas fa-image"></i></div>`;
+
+            tr.innerHTML = `
+                <td><strong style="color: #667eea;">#${e.id}</strong></td>
+                <td><strong>${e.label}</strong></td>
+                <td>${statusBadge}</td>
+                <td>${similarityHtml}</td>
+                <td><span class="camera-badge"><i class="fas fa-video"></i> ${e.camera}</span></td>
+                <td>
+                    <div class="datetime-text">
+                        <span class="date-part">${datePart}</span>
+                        <span class="time-part">${timePart}</span>
+                    </div>
+                </td>
+                <td>${snapshotHtml}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updateStats() {
+        const total = allEvents.length;
+        const known = allEvents.filter(e => !e.es_desconocido).length;
+        const unknown = allEvents.filter(e => e.es_desconocido).length;
+
+        animateCounter('totalEvents', total);
+        animateCounter('knownEvents', known);
+        animateCounter('unknownEvents', unknown);
+    }
+
+    function animateCounter(id, target) {
+        const element = document.getElementById(id);
+        const current = parseInt(element.textContent) || 0;
+        const step = Math.ceil(Math.abs(target - current) / 10);
+        
+        let value = current;
+        const interval = setInterval(() => {
+            if (value < target) {
+                value = Math.min(value + step, target);
+            } else if (value > target) {
+                value = Math.max(value - step, target);
+            }
+            
+            element.textContent = value;
+            
+            if (value === target) {
+                clearInterval(interval);
+            }
+        }, 30);
+    }
+
+    window.openImageModal = function(src) {
+        document.getElementById('modalImage').src = src;
+        document.getElementById('imageModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeImageModal = function() {
+        document.getElementById('imageModal').classList.remove('active');
+        document.body.style.overflow = 'auto';
+    };
+
+    // Cerrar modal con ESC o click fuera
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeImageModal();
+        }
+    });
+
+    document.getElementById('imageModal').addEventListener('click', (e) => {
+        if (e.target.id === 'imageModal') {
+            closeImageModal();
+        }
+    });
+
+    // Limpiar intervalo al salir
+    window.addEventListener('beforeunload', () => {
+        clearInterval(interval);
+    });
+
+    console.log('%c📊 Página de Eventos', 'color: #667eea; font-size: 16px; font-weight: bold;');
+    console.log('%cSistema de monitoreo activo', 'color: #00ff88; font-size: 12px;');
+    console.log('%cAuto-actualización cada 5 segundos', 'color: #4facfe; font-size: 11px;');
+});
 </script>
+
+<style>
+/* Mejoras adicionales de UX */
+.controls-bar {
+    position: relative;
+    overflow: hidden;
+}
+
+.controls-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+    transition: left 0.5s;
+}
+
+.controls-bar:hover::before {
+    left: 100%;
+}
+
+/* Efecto de hover mejorado en filas */
+tbody tr {
+    position: relative;
+}
+
+tbody tr::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: var(--primary-gradient);
+    transform: scaleY(0);
+    transition: transform 0.3s;
+}
+
+tbody tr:hover::before {
+    transform: scaleY(1);
+}
+
+tbody tr.unknown::before {
+    background: var(--danger-gradient);
+}
+
+/* Animación de actualización de datos */
+@keyframes dataUpdate {
+    0% { background-color: rgba(102, 126, 234, 0.3); }
+    100% { background-color: transparent; }
+}
+
+tbody tr.new-data {
+    animation: dataUpdate 1s ease;
+}
+
+/* Mejorar el contraste de los badges */
+.badge {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Efecto de brillo en las imágenes */
+.snapshot-img {
+    position: relative;
+}
+
+.snapshot-img::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+}
+
+.snapshot-img:hover::after {
+    left: 100%;
+}
+
+/* Indicador de carga sutil en auto-update */
+.auto-update-badge.updating {
+    animation: pulse 0.5s ease;
+}
+
+/* Tooltip para imágenes */
+.snapshot-img[title]:hover::before {
+    content: attr(title);
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px 10px;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    font-size: 11px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 100;
+}
+
+/* Mejoras de accesibilidad */
+.filter-select:focus,
+.search-input:focus {
+    transform: translateY(-2px);
+}
+
+/* Tabla alternada (opcional) */
+tbody tr:nth-child(even) {
+    background: rgba(36, 43, 71, 0.2);
+}
+
+tbody tr:nth-child(even):hover {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+/* Efecto de nueva fila */
+@keyframes highlightNew {
+    0% {
+        background: rgba(0, 255, 136, 0.3);
+    }
+    100% {
+        background: transparent;
+    }
+}
+
+tbody tr.highlight-new {
+    animation: highlightNew 2s ease;
+}
+
+/* Scroll suave */
+.table-wrapper {
+    scroll-behavior: smooth;
+}
+
+/* Estado de carga en filtros */
+.filter-select:disabled,
+.search-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Mejora del modal de imagen */
+.image-modal {
+    cursor: zoom-out;
+}
+
+.image-modal-content {
+    cursor: default;
+}
+
+/* Contador animado */
+.stat-badge span {
+    display: inline-block;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Mejora de la barra de similitud */
+.similarity-fill {
+    position: relative;
+    overflow: hidden;
+}
+
+.similarity-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Efecto de entrada para stats */
+.stat-badge {
+    animation: slideInFromRight 0.5s ease forwards;
+    opacity: 0;
+}
+
+.stat-badge:nth-child(1) { animation-delay: 0.1s; }
+.stat-badge:nth-child(2) { animation-delay: 0.2s; }
+.stat-badge:nth-child(3) { animation-delay: 0.3s; }
+.stat-badge:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Mensaje de "Sin resultados" mejorado */
+.empty-state {
+    position: relative;
+}
+
+.empty-state::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+/* Indicador visual de tipo de evento */
+tbody tr.unknown td:first-child::before {
+    content: '!';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    background: var(--danger-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+tbody td:first-child {
+    position: relative;
+    padding-left: 35px;
+}
+
+/* Mejora del header sticky */
+thead {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Transición suave en cambio de datos */
+tbody {
+    transition: opacity 0.3s;
+}
+
+tbody.updating {
+    opacity: 0.7;
+}
+
+/* Efecto de hover en badges */
+.badge {
+    transition: all 0.3s;
+}
+
+.badge:hover {
+    transform: scale(1.05);
+}
+
+/* Mejora visual de fechas */
+.datetime-text {
+    position: relative;
+    padding-left: 25px;
+}
+
+.datetime-text::before {
+    content: '\f017';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+
+/* Indicador de eventos recientes */
+tbody tr:first-child {
+    position: relative;
+}
+
+tbody tr:first-child::after {
+    content: 'NUEVO';
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    padding: 3px 8px;
+    background: var(--success-gradient);
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    animation: fadeOut 5s forwards;
+}
+
+@keyframes fadeOut {
+    0%, 80% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Mejora de la experiencia móvil */
+@media (max-width: 768px) {
+    tbody tr::before {
+        display: none;
+    }
+
+    tbody tr.unknown td:first-child::before {
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    tbody td:first-child {
+        padding-left: 25px;
+    }
+
+    .datetime-text {
+        padding-left: 0;
+    }
+
+    .datetime-text::before {
+        display: none;
+    }
+}
+
+/* Efecto de selección de texto */
+::selection {
+    background: rgba(102, 126, 234, 0.3);
+    color: var(--text-primary);
+}
+
+/* Cursor personalizado en elementos interactivos */
+.snapshot-img,
+.close-image-modal,
+.filter-select,
+.search-input {
+    cursor: pointer;
+}
+
+.loading-overlay {
+    cursor: wait;
+}
+
+/* Animación de entrada del header */
+.page-header {
+    animation: slideDown 0.5s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mejora del indicador de auto-actualización */
+.auto-update-badge .pulse-dot {
+    position: relative;
+}
+
+.auto-update-badge .pulse-dot::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background: #00ff88;
+    border-radius: 50%;
+    opacity: 0;
+    animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
+}
+
+/* Prevenir selección de texto en elementos UI */
+.stat-badge,
+.badge,
+.auto-update-badge,
+thead th,
+.close-image-modal {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+
+/* Efecto de foco mejorado */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Optimización para impresión */
+@media print {
+    .page-header,
+    .controls-bar,
+    .loading-overlay,
+    .image-modal,
+    .auto-update-badge {
+        display: none !important;
+    }
+
+    body {
+        background: white;
+        color: black;
+    }
+
+    .table-card {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+
+    tbody tr {
+        background: white !important;
+    }
+
+    tbody tr:nth-child(odd) {
+        background: #f5f5f5 !important;
+    }
+}
+
+/* Mejora de rendimiento */
+.table-wrapper {
+    will-change: scroll-position;
+}
+
+tbody tr {
+    will-change: transform, opacity;
+}
+
+/* Estado de carga inicial */
+.table-card.loading {
+    min-height: 400px;
+}
+</style>
+
 {% endblock %}

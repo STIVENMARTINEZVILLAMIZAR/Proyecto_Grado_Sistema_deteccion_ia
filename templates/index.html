@@ -1,14 +1,674 @@
 {% extends "layout.html" %}
 {% block content %}
 
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --card-bg: #1a1f3a;
+        --card-bg-light: #242b47;
+        --dark-bg: #0f1425;
+        --border-color: #2d3548;
+        --text-primary: #ffffff;
+        --text-secondary: #8b92a8;
+        --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    body {
+        background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        color: var(--text-primary);
+        overflow-x: hidden;
+    }
+
+    /* Header Superior */
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-bg) 100%);
+        padding: 25px 40px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--primary-gradient);
+    }
+
+    .dashboard-header h2 {
+        font-size: 26px;
+        font-weight: 700;
+        margin: 0 0 15px 0;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .dashboard-header h2 i {
+        background: var(--primary-gradient);
+        padding: 12px;
+        border-radius: 12px;
+        font-size: 22px;
+    }
+
+    .status-indicators {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .status-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 14px;
+        font-weight: 500;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+
+    .status-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .led {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        animation: pulse-led 2s infinite;
+        position: relative;
+    }
+
+    .led::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        opacity: 0.3;
+        animation: pulse-ring 2s infinite;
+    }
+
+    .led.green {
+        background: #00ff88;
+        box-shadow: 0 0 15px #00ff88;
+    }
+
+    .led.green::after {
+        background: #00ff88;
+    }
+
+    .led.blue {
+        background: #00d4ff;
+        box-shadow: 0 0 15px #00d4ff;
+    }
+
+    .led.blue::after {
+        background: #00d4ff;
+    }
+
+    @keyframes pulse-led {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    @keyframes pulse-ring {
+        0% {
+            transform: translate(-50%, -50%) scale(0.5);
+            opacity: 0.5;
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(2);
+            opacity: 0;
+        }
+    }
+
+    /* Dashboard Grid */
+    .dashboard {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 30px;
+    }
+
+    /* Cards */
+    .card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--primary-gradient);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .card:hover::before {
+        opacity: 1;
+    }
+
+    .card-header {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--text-primary);
+    }
+
+    .card-header h3 i {
+        background: var(--primary-gradient);
+        padding: 10px;
+        border-radius: 10px;
+        font-size: 18px;
+    }
+
+    /* Sección de Cámaras */
+    .cameras-section {
+        grid-column: 1;
+        grid-row: 1 / 3;
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 200px);
+    }
+
+    .cameras-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+        overflow-y: auto;
+        padding-right: 10px;
+        flex: 1;
+    }
+
+    .cameras-grid::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .cameras-grid::-webkit-scrollbar-track {
+        background: var(--dark-bg);
+        border-radius: 4px;
+    }
+
+    .cameras-grid::-webkit-scrollbar-thumb {
+        background: var(--primary-gradient);
+        border-radius: 4px;
+    }
+
+    .camera-container {
+        background: var(--card-bg-light);
+        border-radius: 14px;
+        padding: 16px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .camera-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+        border-color: #667eea;
+    }
+
+    .camera-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .camera-header h4 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-primary);
+    }
+
+    .camera-header h4 i {
+        color: #667eea;
+    }
+
+    .status {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status.active {
+        background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 255, 136, 0.1) 100%);
+        color: #00ff88;
+        border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+
+    .status.inactive {
+        background: linear-gradient(135deg, rgba(255, 68, 68, 0.2) 0%, rgba(255, 68, 68, 0.1) 100%);
+        color: #ff4444;
+        border: 1px solid rgba(255, 68, 68, 0.3);
+    }
+
+    .stream-container {
+        position: relative;
+        background: #000;
+        border-radius: 10px;
+        overflow: hidden;
+        aspect-ratio: 16/9;
+        margin-bottom: 12px;
+    }
+
+    .cam-loading, .cam-error {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: var(--text-secondary);
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+    }
+
+    .cam-stream {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: opacity 0.3s;
+    }
+
+    .camera-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 10px 18px;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-gradient {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    /* Estadísticas */
+    .stats-section {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .stats-grid {
+        display: grid;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-item {
+        background: linear-gradient(135deg, var(--card-bg-light) 0%, var(--card-bg) 100%);
+        padding: 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        transition: all 0.3s;
+    }
+
+    .stat-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-item:nth-child(1)::before {
+        background: linear-gradient(180deg, #00ff88 0%, #00d4ff 100%);
+    }
+
+    .stat-item:nth-child(2)::before {
+        background: linear-gradient(180deg, #ff4444 0%, #ff6b6b 100%);
+    }
+
+    .stat-item:nth-child(3)::before {
+        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .stat-item.critical {
+        border-color: rgba(102, 126, 234, 0.5);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        position: relative;
+    }
+
+    .stat-icon::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: 14px;
+        padding: 2px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+    }
+
+    .text-success {
+        color: #00ff88 !important;
+        background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 255, 136, 0.05) 100%);
+    }
+
+    .text-danger {
+        color: #ff4444 !important;
+        background: linear-gradient(135deg, rgba(255, 68, 68, 0.2) 0%, rgba(255, 68, 68, 0.05) 100%);
+    }
+
+    .text-info {
+        color: #00d4ff !important;
+        background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 212, 255, 0.05) 100%);
+    }
+
+    .stat-info h4 {
+        font-size: 36px;
+        font-weight: 700;
+        margin: 0 0 5px 0;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-info p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    canvas {
+        margin-top: 20px;
+        border-radius: 10px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    /* Alertas */
+    .alerts-section {
+        grid-column: 2;
+        grid-row: 2;
+        max-height: 500px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .alerts-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        overflow-y: auto;
+        padding-right: 10px;
+        flex: 1;
+    }
+
+    .alerts-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .alerts-list::-webkit-scrollbar-track {
+        background: var(--dark-bg);
+        border-radius: 3px;
+    }
+
+    .alerts-list::-webkit-scrollbar-thumb {
+        background: var(--primary-gradient);
+        border-radius: 3px;
+    }
+
+    .alert-item {
+        background: linear-gradient(135deg, var(--card-bg-light) 0%, var(--card-bg) 100%);
+        padding: 16px;
+        border-radius: 12px;
+        border-left: 4px solid #ffc107;
+        transition: all 0.3s ease;
+        animation: slideInAlert 0.5s ease;
+    }
+
+    @keyframes slideInAlert {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .alert-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 10px 30px rgba(255, 193, 7, 0.2);
+    }
+
+    .alert-icon {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.2) 0%, rgba(255, 193, 7, 0.05) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .text-warning {
+        color: #ffc107 !important;
+    }
+
+    .alert-info strong {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .alert-info p {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .no-alerts {
+        text-align: center;
+        padding: 60px 20px;
+        color: #00ff88;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    .no-alerts::before {
+        content: '✓';
+        display: block;
+        font-size: 48px;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Animación de carga */
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 1400px) {
+        .dashboard {
+            grid-template-columns: 1fr;
+        }
+
+        .cameras-section {
+            grid-column: 1;
+            grid-row: auto;
+        }
+
+        .stats-section, .alerts-section {
+            grid-column: 1;
+            grid-row: auto;
+        }
+
+        .cameras-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-header {
+            padding: 20px;
+        }
+
+        .dashboard-header h2 {
+            font-size: 20px;
+        }
+
+        .cameras-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard {
+            gap: 20px;
+        }
+
+        .card {
+            padding: 20px;
+        }
+    }
+
+    /* Efectos de glassmorphism */
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+</style>
+
 <div class="dashboard-header">
-  <h2><i class="fas fa-shield-alt"></i> Centro de Seguridad Inteligente - {{ empresa }}</h2>
+  <h2>
+    <i class="fas fa-shield-halved"></i> 
+    Centro de Seguridad Inteligente - {{ empresa }}
+  </h2>
   <div class="status-indicators">
     <div class="status-item">
       <span class="led green"></span> Sistema Activo
     </div>
     <div class="status-item">
       <span class="led blue"></span> IA Funcionando
+    </div>
+    <div class="status-item">
+      <i class="fas fa-clock"></i>
+      <span id="currentTime"></span>
     </div>
   </div>
 </div>
@@ -17,8 +677,8 @@
 
   <!-- Sección de cámaras -->
   <div class="card cameras-section">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h3 class="monitor-title"><i class="fas fa-video"></i> Centro de Monitoreo</h3>
+    <div class="card-header">
+      <h3><i class="fas fa-video"></i> Centro de Monitoreo</h3>
       <div class="camera-controls">
         <button id="refreshCameras" class="btn btn-gradient">
           <i class="fas fa-sync-alt"></i> Actualizar
@@ -33,25 +693,31 @@
   <!-- Estadísticas -->
   <div class="card stats-section">
     <div class="card-header">
-      <h3><i class="fas fa-chart-pie"></i> Estadísticas en Tiempo Real</h3>
+      <h3><i class="fas fa-chart-line"></i> Estadísticas en Tiempo Real</h3>
     </div>
     <div class="stats-grid">
       <div class="stat-item">
-        <div class="stat-icon"><i class="fas fa-user-check text-success"></i></div>
+        <div class="stat-icon text-success">
+          <i class="fas fa-user-check"></i>
+        </div>
         <div class="stat-info">
           <h4 id="conocidosCount">0</h4>
           <p>Personas Conocidas</p>
         </div>
       </div>
       <div class="stat-item">
-        <div class="stat-icon"><i class="fas fa-user-times text-danger"></i></div>
+        <div class="stat-icon text-danger">
+          <i class="fas fa-user-shield"></i>
+        </div>
         <div class="stat-info">
           <h4 id="desconocidosCount">0</h4>
           <p>Personas Desconocidas</p>
         </div>
       </div>
       <div class="stat-item critical">
-        <div class="stat-icon"><i class="fas fa-eye text-info"></i></div>
+        <div class="stat-icon text-info">
+          <i class="fas fa-radar"></i>
+        </div>
         <div class="stat-info">
           <h4 id="totalDetecciones">0</h4>
           <p>Total Detecciones Hoy</p>
@@ -65,7 +731,7 @@
   <!-- Alertas -->
   <div class="card alerts-section">
     <div class="card-header">
-      <h3><i class="fas fa-exclamation-triangle"></i> Alertas Recientes</h3>
+      <h3><i class="fas fa-bell"></i> Alertas Recientes</h3>
     </div>
     <div id="recentAlerts" class="alerts-list">
       <!-- Se cargan dinámicamente -->
@@ -81,6 +747,19 @@ document.addEventListener("DOMContentLoaded", () => {
   let chartDonut = null;
   let chartTimeline = null;
 
+  // Reloj en tiempo real
+  function updateClock() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    document.getElementById('currentTime').textContent = timeString;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
   // ---------- CARGAR CAMARAS ----------
   function loadCameras() {
     fetch("/api/cameras")
@@ -91,23 +770,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
         cameras.forEach(camera => {
           const cameraDiv = document.createElement("div");
-          cameraDiv.className = "camera-container card shadow-sm p-2";
+          cameraDiv.className = "camera-container";
           cameraDiv.innerHTML = `
-            <div class="camera-header d-flex justify-content-between align-items-center">
+            <div class="camera-header">
               <h4><i class="fas fa-video"></i> ${camera.name}</h4>
               <span class="status ${camera.status}">
-                ${camera.status === 'active' ? '🟢 Activa' : '🔴 Inactiva'}
+                ${camera.status === 'active' ? '● Activa' : '● Inactiva'}
               </span>
             </div>
-            <div class="stream-container text-center mt-2">
-              <div class="cam-loading">⏳ Conectando cámara...</div>
-              <img class="cam-stream w-100 rounded border border-info" 
+            <div class="stream-container">
+              <div class="cam-loading">
+                <i class="fas fa-spinner fa-spin"></i> Conectando...
+              </div>
+              <img class="cam-stream" 
                    src="/placeholder.svg" 
                    alt="Stream ${camera.name}" 
-                   style="display:none; max-height:250px; object-fit:cover;">
-              <div class="cam-error text-danger mt-1" style="display:none;">⚠️ No se pudo conectar</div>
+                   style="display:none;">
+              <div class="cam-error" style="display:none;">
+                <i class="fas fa-exclamation-triangle"></i> No se pudo conectar
+              </div>
             </div>
-            <div class="camera-controls d-flex justify-content-center gap-2 mt-2">
+            <div class="camera-controls">
               <button onclick="startCamera(${camera.id}, this)" class="btn btn-primary btn-sm">
                 <i class="fas fa-play"></i> Iniciar
               </button>
@@ -129,44 +812,62 @@ document.addEventListener("DOMContentLoaded", () => {
     const stream = container.querySelector('.cam-stream');
     const error = container.querySelector('.cam-error');
 
-    loading.style.display = 'block';
+    loading.style.display = 'flex';
     stream.style.display = 'none';
     error.style.display = 'none';
 
-    stream.src = `/stream/${camId}?t=${Date.now()}`; // evitar caché
+    stream.src = `/stream/${camId}?t=${Date.now()}`;
 
     stream.onload = () => {
       loading.style.display = 'none';
       stream.style.display = 'block';
       button.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+      button.classList.add('btn-secondary');
+      button.classList.remove('btn-primary');
     };
 
     stream.onerror = () => {
       loading.style.display = 'none';
-      error.style.display = 'block';
+      error.style.display = 'flex';
     };
   };
 
   window.stopCamera = function(camId, button) {
     const container = button.closest('.camera-container');
     const stream = container.querySelector('.cam-stream');
+    const loading = container.querySelector('.cam-loading');
+    const error = container.querySelector('.cam-error');
+    
     stream.src = '';
     stream.style.display = 'none';
-    container.querySelector('.cam-loading').style.display = 'none';
-    container.querySelector('.cam-error').style.display = 'none';
-    button.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+    loading.style.display = 'none';
+    error.style.display = 'none';
+    
+    const startBtn = container.querySelector('.camera-controls button:first-child');
+    startBtn.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+    startBtn.classList.add('btn-primary');
+    startBtn.classList.remove('btn-secondary');
   };
 
   // ---------- ESTADISTICAS ----------
   function animateCounter(id, target) {
     const element = document.getElementById(id);
     let count = parseInt(element.textContent) || 0;
-    const step = target > count ? 1 : -1;
-    const interval = setInterval(() => {
-      count += step;
-      element.textContent = count;
-      if (count === target) clearInterval(interval);
-    }, 20);
+    const duration = 1000;
+    const steps = 30;
+    const increment = (target - count) / steps;
+    let current = 0;
+
+    const timer = setInterval(() => {
+      current++;
+      count += increment;
+      element.textContent = Math.round(count);
+      
+      if (current >= steps) {
+        element.textContent = target;
+        clearInterval(timer);
+      }
+    }, duration / steps);
   }
 
   function loadStats() {
@@ -181,38 +882,130 @@ document.addEventListener("DOMContentLoaded", () => {
         animateCounter('desconocidosCount', desconocidos);
         animateCounter('totalDetecciones', total);
 
-        // Gráfico DONUT
+        // Gráfico DONUT mejorado
         if (chartDonut) chartDonut.destroy();
-        chartDonut = new Chart(document.getElementById("chartEvents").getContext("2d"), {
+        const ctx1 = document.getElementById("chartEvents").getContext("2d");
+        
+        const gradient1 = ctx1.createLinearGradient(0, 0, 0, 400);
+        gradient1.addColorStop(0, '#00ff88');
+        gradient1.addColorStop(1, '#00d4ff');
+        
+        const gradient2 = ctx1.createLinearGradient(0, 0, 0, 400);
+        gradient2.addColorStop(0, '#ff4444');
+        gradient2.addColorStop(1, '#ff6b6b');
+
+        chartDonut = new Chart(ctx1, {
           type: 'doughnut',
           data: {
             labels: ['Conocidos', 'Desconocidos'],
             datasets: [{
               data: [conocidos, desconocidos],
-              backgroundColor: ['#28a745','#dc3545'],
-              borderWidth: 2,
-              borderColor: '#fff'
+              backgroundColor: [gradient1, gradient2],
+              borderWidth: 0,
+              hoverOffset: 10
             }]
           },
-          options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: '#8b92a8',
+                  padding: 20,
+                  font: { size: 13, weight: '600' },
+                  usePointStyle: true,
+                  pointStyle: 'circle'
+                }
+              }
+            }
+          }
         });
 
-        // Gráfico LINEA temporal
+        // Gráfico LINEA temporal mejorado
         if (chartTimeline) chartTimeline.destroy();
-        chartTimeline = new Chart(document.getElementById("chartTimeline").getContext("2d"), {
+        const ctx2 = document.getElementById("chartTimeline").getContext("2d");
+        
+        const gradient3 = ctx2.createLinearGradient(0, 0, 0, 400);
+        gradient3.addColorStop(0, 'rgba(102, 126, 234, 0.8)');
+        gradient3.addColorStop(1, 'rgba(102, 126, 234, 0.1)');
+
+        chartTimeline = new Chart(ctx2, {
           type: 'line',
           data: {
-            labels: data.map(e => new Date(e.timestamp).toLocaleTimeString()),
+            labels: data.slice(-15).map(e => new Date(e.timestamp).toLocaleTimeString('es-ES', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })),
             datasets: [{
               label: "Detecciones",
-              borderColor: "#17a2b8",
-              backgroundColor: "rgba(23,162,184,0.2)",
-              data: data.map((e, i) => i + 1),
+              borderColor: "#667eea",
+              backgroundColor: gradient3,
+              data: data.slice(-15).map((e, i) => i + 1),
               fill: true,
-              tension: 0.4
+              tension: 0.4,
+              borderWidth: 3,
+              pointRadius: 5,
+              pointHoverRadius: 8,
+              pointBackgroundColor: '#667eea',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointHoverBackgroundColor: '#fff',
+              pointHoverBorderColor: '#667eea',
+              pointHoverBorderWidth: 3
             }]
           },
-          options: { responsive: true, plugins: { legend: { display: false } } }
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                backgroundColor: 'rgba(26, 31, 58, 0.95)',
+                titleColor: '#fff',
+                bodyColor: '#8b92a8',
+                borderColor: '#667eea',
+                borderWidth: 1,
+                padding: 12,
+                displayColors: false,
+                callbacks: {
+                  title: (context) => `Hora: ${context[0].label}`,
+                  label: (context) => `Detecciones: ${context.parsed.y}`
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  color: '#8b92a8',
+                  font: { size: 11 },
+                  stepSize: 1
+                },
+                grid: {
+                  color: 'rgba(139, 146, 168, 0.1)',
+                  drawBorder: false
+                }
+              },
+              x: {
+                ticks: {
+                  color: '#8b92a8',
+                  font: { size: 11 },
+                  maxRotation: 0
+                },
+                grid: {
+                  display: false
+                }
+              }
+            },
+            interaction: {
+              intersect: false,
+              mode: 'index'
+            }
+          }
         });
 
         loadRecentAlerts(data);
@@ -223,32 +1016,296 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- ALERTAS ----------
   function loadRecentAlerts(events) {
     const alertsContainer = document.getElementById('recentAlerts');
-    const recentEvents = events.filter(e => e.es_desconocido).slice(-5).reverse();
+    const recentEvents = events.filter(e => e.es_desconocido).slice(-8).reverse();
 
     if (recentEvents.length === 0) {
-      alertsContainer.innerHTML = '<p class="no-alerts text-success">✅ Sin alertas recientes</p>';
+      alertsContainer.innerHTML = '<div class="no-alerts">Sin alertas recientes</div>';
       return;
     }
 
-    alertsContainer.innerHTML = recentEvents.map(event => `
-      <div class="alert-item critical card p-2 mb-2 shadow-sm">
-        <div class="d-flex align-items-center">
-          <div class="alert-icon me-2"><i class="fas fa-exclamation-triangle text-warning"></i></div>
-          <div class="alert-info">
-            <strong>Desconocido Detectado</strong>
-            <p class="mb-0">Cámara: ${event.camera} - ${new Date(event.timestamp).toLocaleString()}</p>
+    alertsContainer.innerHTML = recentEvents.map(event => {
+      const date = new Date(event.timestamp);
+      const timeStr = date.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      const dateStr = date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short'
+      });
+
+      return `
+        <div class="alert-item card shadow-sm">
+          <div class="d-flex align-items-center gap-3">
+            <div class="alert-icon">
+              <i class="fas fa-exclamation-triangle text-warning"></i>
+            </div>
+            <div class="alert-info flex-grow-1">
+              <strong>Persona Desconocida Detectada</strong>
+              <p>
+                <i class="fas fa-video me-1"></i> ${event.camera}
+                <span class="mx-2">•</span>
+                <i class="fas fa-clock me-1"></i> ${timeStr}
+                <span class="mx-2">•</span>
+                <i class="fas fa-calendar me-1"></i> ${dateStr}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   // ---------- INIT ----------
   loadCameras();
   loadStats();
+  
+  // Auto-refresh cada 30 segundos
   setInterval(loadStats, 30000);
-  document.getElementById('refreshCameras').addEventListener('click', loadCameras);
+  
+  // Botón de refresh con animación
+  document.getElementById('refreshCameras').addEventListener('click', function() {
+    const icon = this.querySelector('i');
+    icon.style.animation = 'spin 1s linear';
+    loadCameras();
+    setTimeout(() => {
+      icon.style.animation = '';
+    }, 1000);
+  });
+
+  // Añadir efecto parallax suave al mover el mouse
+  document.addEventListener('mousemove', (e) => {
+    const cards = document.querySelectorAll('.card');
+    const mouseX = e.clientX / window.innerWidth;
+    const mouseY = e.clientY / window.innerHeight;
+    
+    cards.forEach((card, index) => {
+      const speed = (index + 1) * 0.5;
+      const x = (mouseX - 0.5) * speed;
+      const y = (mouseY - 0.5) * speed;
+      card.style.transform = `translateX(${x}px) translateY(${y}px)`;
+    });
+  });
+
+  // Animación de entrada para las tarjetas
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, index) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }, index * 100);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  // Observar todas las tarjetas
+  document.querySelectorAll('.card').forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'all 0.6s ease';
+    observer.observe(card);
+  });
+
+  // Efecto de brillo en el header
+  const header = document.querySelector('.dashboard-header');
+  let glowIntensity = 0;
+  let glowDirection = 1;
+
+  setInterval(() => {
+    glowIntensity += 0.02 * glowDirection;
+    if (glowIntensity >= 1 || glowIntensity <= 0) {
+      glowDirection *= -1;
+    }
+    header.style.boxShadow = `0 20px 60px rgba(102, 126, 234, ${0.3 + glowIntensity * 0.2})`;
+  }, 50);
+
+  // Notificación visual cuando hay nuevas alertas
+  let lastAlertCount = 0;
+  
+  setInterval(() => {
+    fetch("/api/events")
+      .then(r => r.json())
+      .then(data => {
+        const currentAlertCount = data.filter(e => e.es_desconocido).length;
+        
+        if (currentAlertCount > lastAlertCount) {
+          // Efecto visual de nueva alerta
+          const alertsCard = document.querySelector('.alerts-section');
+          alertsCard.style.borderColor = '#ffc107';
+          alertsCard.style.boxShadow = '0 0 30px rgba(255, 193, 7, 0.5)';
+          
+          setTimeout(() => {
+            alertsCard.style.borderColor = '';
+            alertsCard.style.boxShadow = '';
+          }, 2000);
+          
+          // Sonido de notificación (opcional - descomentar si tienes el archivo)
+          // const audio = new Audio('/static/sounds/alert.mp3');
+          // audio.play().catch(e => console.log('Audio no disponible'));
+        }
+        
+        lastAlertCount = currentAlertCount;
+      })
+      .catch(err => console.error("Error verificando alertas:", err));
+  }, 10000); // Verificar cada 10 segundos
+
+  // Agregar indicador de conexión en tiempo real
+  const statusIndicators = document.querySelector('.status-indicators');
+  const connectionStatus = document.createElement('div');
+  connectionStatus.className = 'status-item';
+  connectionStatus.innerHTML = `
+    <span class="led green" id="connectionLed"></span>
+    <span id="connectionText">Conectado</span>
+  `;
+  statusIndicators.appendChild(connectionStatus);
+
+  // Monitorear conexión
+  window.addEventListener('online', () => {
+    document.getElementById('connectionLed').className = 'led green';
+    document.getElementById('connectionText').textContent = 'Conectado';
+  });
+
+  window.addEventListener('offline', () => {
+    document.getElementById('connectionLed').className = 'led';
+    document.getElementById('connectionLed').style.background = '#ff4444';
+    document.getElementById('connectionText').textContent = 'Sin conexión';
+  });
+
+  // Easter egg: Doble click en el logo para modo de alto contraste
+  let clickCount = 0;
+  document.querySelector('.dashboard-header h2 i').addEventListener('click', () => {
+    clickCount++;
+    if (clickCount === 2) {
+      document.body.classList.toggle('high-contrast');
+      clickCount = 0;
+    }
+    setTimeout(() => clickCount = 0, 500);
+  });
+
+  console.log('%c🛡️ Centro de Seguridad Inteligente', 'color: #667eea; font-size: 20px; font-weight: bold;');
+  console.log('%cSistema iniciado correctamente', 'color: #00ff88; font-size: 14px;');
+  console.log('%cVersión: 2.0.0 | Estado: Activo', 'color: #8b92a8; font-size: 12px;');
 });
 </script>
+
+<style>
+/* Modo de alto contraste (Easter egg) */
+body.high-contrast {
+  --card-bg: #000000 !important;
+  --card-bg-light: #1a1a1a !important;
+  --border-color: #ffffff !important;
+}
+
+body.high-contrast .card {
+  border-width: 2px;
+}
+
+/* Animaciones adicionales */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.stat-icon {
+  animation: float 3s ease-in-out infinite;
+}
+
+.stat-icon:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.stat-icon:nth-child(3) {
+  animation-delay: 1s;
+}
+
+/* Efecto de resplandor en las cámaras activas */
+.camera-container:has(.cam-stream[style*="display: block"]) {
+  box-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
+}
+
+/* Mejorar el aspecto de los scrollbars en Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #667eea var(--dark-bg);
+}
+
+/* Transición suave para todos los elementos interactivos */
+button, .status-item, .stat-item, .alert-item, .camera-container {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Efecto hover mejorado para botones */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Loading state mejorado */
+.cam-loading i, .cam-error i {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+/* Mejorar legibilidad en pantallas pequeñas */
+@media (max-width: 576px) {
+  .status-indicators {
+    justify-content: center;
+  }
+  
+  .stat-info h4 {
+    font-size: 28px;
+  }
+  
+  .camera-controls {
+    flex-wrap: wrap;
+  }
+  
+  .btn {
+    flex: 1;
+    min-width: 100px;
+  }
+}
+
+/* Añadir cursor pointer a elementos clicables */
+.status-item, .stat-item, .alert-item, .camera-container {
+  cursor: default;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Prevenir selección de texto en elementos UI */
+.status-item, .stat-item, .camera-header, .card-header {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+</style>
 
 {% endblock %}
