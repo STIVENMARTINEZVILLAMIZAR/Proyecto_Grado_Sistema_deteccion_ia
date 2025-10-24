@@ -690,6 +690,26 @@
     </div>
   </div>
 
+<!-- Widget de Telegram -->
+<div class="telegram-widget">
+    <div class="telegram-widget-header">
+        <i class="fab fa-telegram"></i>
+        <span>Alertas por Telegram</span>
+    </div>
+    <p class="telegram-widget-text">Recibe notificaciones instantáneas en tu móvil</p>
+    <a href="https://t.me/seguridadFacialbot" target="_blank" class="telegram-join-btn">
+        <i class="fab fa-telegram-plane"></i>
+        Unirse al Bot
+    </a>
+    <div class="telegram-instructions">
+        <small>
+            <i class="fas fa-info-circle"></i>
+            Envía <code>/start</code> al bot después de unirte
+        </small>
+    </div>
+</div>
+
+
   <!-- Estadísticas -->
   <div class="card stats-section">
     <div class="card-header">
@@ -1305,6 +1325,109 @@ button {
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
+}
+
+/* Widget de Telegram */
+.telegram-widget {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 300px;
+    background: linear-gradient(135deg, #0088cc 0%, #005f99 100%);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 136, 204, 0.4);
+    z-index: 1000;
+    animation: slideInUp 0.5s ease;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.telegram-widget-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.telegram-widget-header i {
+    font-size: 24px;
+}
+
+.telegram-widget-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    margin: 0 0 15px 0;
+    line-height: 1.5;
+}
+
+.telegram-join-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: white;
+    color: #0088cc;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 15px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.telegram-join-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.telegram-join-btn i {
+    font-size: 20px;
+}
+
+.telegram-instructions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.telegram-instructions small {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+}
+
+.telegram-instructions code {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .telegram-widget {
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        width: auto;
+    }
 }
 </style>
 
