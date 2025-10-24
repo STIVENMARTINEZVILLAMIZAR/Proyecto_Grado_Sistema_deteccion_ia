@@ -4,11 +4,11 @@ from datetime import datetime
 
 # ⚙️ CONFIGURACIÓN DEL BOT DE TELEGRAM
 TOKEN = "8331155786:AAHUzgyMzfi3MkowwyNpWgzvc4FJjx08Cmg"
-CHAT_ID = None  # Se configurará automáticamente
+CHAT_ID = 5309556939  # Se configurará automáticamente
 
 # 🔗 URL DEL BOT PARA QUE LOS USUARIOS SE UNAN
 BOT_USERNAME = "seguridadFacialbot"  # Tu usuario de bot en Telegram
-BOT_LINK = f"https://https://t.me/{seguridadFacialbot}"
+BOT_LINK = f"https://t.me/{BOT_USERNAME}"
 
 def enviar_alerta_telegram(nombre_empresa, nombre_camara, similitud, foto_path=None):
     """
